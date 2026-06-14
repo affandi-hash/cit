@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useMemo, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -57,6 +57,7 @@ type SortDir = 'asc' | 'desc'
 
 export function CasesClient({ initialCases, platforms, topics, investigators }: Props) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [cases] = useState(initialCases)
   const [search, setSearch] = useState('')
   const [filterPlatform, setFilterPlatform] = useState('all')
@@ -67,6 +68,13 @@ export function CasesClient({ initialCases, platforms, topics, investigators }: 
   const [sortDir, setSortDir] = useState<SortDir>('desc')
   const [selectedCase, setSelectedCase] = useState<CaseRow | null>(null)
   const [addModalOpen, setAddModalOpen] = useState(false)
+
+  useEffect(() => {
+    if (searchParams.get('add') === '1') {
+      setAddModalOpen(true)
+      router.replace('/cases')
+    }
+  }, [searchParams, router])
 
   function toggleSort(key: SortKey) {
     if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
