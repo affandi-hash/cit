@@ -19,6 +19,8 @@ export default async function AdminPage() {
     { data: scoringFormulas },
     { data: aiPrompts },
     { data: users },
+    { data: keywordGroups },
+    { data: keywords },
   ] = await Promise.all([
     supabase.from('platforms').select('*').order('sort_order'),
     supabase.from('topics').select('*').order('sort_order'),
@@ -27,6 +29,8 @@ export default async function AdminPage() {
     supabase.from('scoring_formulas').select('*'),
     supabase.from('ai_prompts').select('*'),
     supabase.from('profiles').select('*').order('created_at'),
+    supabase.from('keyword_groups').select('*').order('sort_order'),
+    supabase.from('keywords').select('*').order('keyword'),
   ])
 
   return (
@@ -39,6 +43,8 @@ export default async function AdminPage() {
       aiPrompts={aiPrompts ?? []}
       users={users ?? []}
       currentUserRole={profile.role as 'super_admin' | 'admin'}
+      keywordGroups={keywordGroups ?? []}
+      keywords={keywords ?? []}
     />
   )
 }

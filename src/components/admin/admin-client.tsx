@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { createClient } from '@/lib/supabase/client'
 import { Plus, Trash2, Save, Settings, Tag, Globe, Shield, Users, Sparkles, BarChart3, Edit3 } from 'lucide-react'
 import { toast } from 'sonner'
+import { KeywordLibrary } from './keyword-library'
 
 interface AdminClientProps {
   platforms: Record<string, unknown>[]
@@ -22,6 +23,8 @@ interface AdminClientProps {
   aiPrompts: Record<string, unknown>[]
   users: Record<string, unknown>[]
   currentUserRole: 'super_admin' | 'admin'
+  keywordGroups: Record<string, unknown>[]
+  keywords: Record<string, unknown>[]
 }
 
 export function AdminClient({
@@ -33,6 +36,8 @@ export function AdminClient({
   aiPrompts: initialPrompts,
   users: initialUsers,
   currentUserRole,
+  keywordGroups,
+  keywords,
 }: AdminClientProps) {
   const supabase = createClient()
   const router = useRouter()
@@ -111,6 +116,7 @@ export function AdminClient({
             { value: 'platforms', label: 'Platforms', icon: Globe },
             { value: 'topics', label: 'Topics', icon: Tag },
             { value: 'account-types', label: 'Account Types', icon: Users },
+            { value: 'keywords', label: 'Keyword Library', icon: Shield },
             { value: 'scoring', label: 'Scoring', icon: BarChart3 },
             { value: 'ai-prompts', label: 'AI Prompts', icon: Sparkles },
             { value: 'users', label: 'Users', icon: Users },
@@ -288,6 +294,16 @@ export function AdminClient({
                 )}
               </div>
             ))}
+          </div>
+        </TabsContent>
+
+        {/* KEYWORD LIBRARY */}
+        <TabsContent value="keywords">
+          <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-5">
+            <KeywordLibrary
+              initialGroups={keywordGroups as Parameters<typeof KeywordLibrary>[0]['initialGroups']}
+              initialKeywords={keywords as Parameters<typeof KeywordLibrary>[0]['initialKeywords']}
+            />
           </div>
         </TabsContent>
 

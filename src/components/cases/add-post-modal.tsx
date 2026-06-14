@@ -193,7 +193,7 @@ export function AddPostModal({ open, onClose, platforms, topics, onSuccess }: Ad
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="bg-slate-900 border-slate-700 text-white max-w-5xl w-full max-h-[92vh] overflow-hidden flex flex-col p-0">
+      <DialogContent className="bg-slate-900 border-slate-700 text-white w-[95vw] max-w-5xl h-[90vh] overflow-hidden flex flex-col p-0">
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-5 pb-0">
           <h2 className="text-lg font-bold text-white">Add & Evaluate Post</h2>
@@ -220,11 +220,11 @@ export function AddPostModal({ open, onClose, platforms, topics, onSuccess }: Ad
           ))}
         </div>
 
-        {/* Body — split panel */}
+        {/* Body — single column */}
         <div className="flex flex-1 overflow-hidden">
 
-          {/* LEFT: Form */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-5 border-r border-slate-800">
+          {/* Form */}
+          <div className="flex-1 overflow-y-auto p-6 space-y-5">
 
             {/* Tab: Post Information */}
             {(activeTab === 'info' || activeTab === 'ai') && (
@@ -236,7 +236,9 @@ export function AddPostModal({ open, onClose, platforms, topics, onSuccess }: Ad
                       <Label className="text-slate-400 text-xs">Platform <span className="text-red-400">*</span></Label>
                       <Select value={form.platform_id} onValueChange={v => setForm(f => ({ ...f, platform_id: v ?? '' }))}>
                         <SelectTrigger className="bg-slate-800 border-slate-700 text-white text-sm h-9">
-                          <SelectValue placeholder="Select..." />
+                          <SelectValue placeholder="Select...">
+                            {platforms.find(p => p.id === form.platform_id)?.name ?? 'Select...'}
+                          </SelectValue>
                         </SelectTrigger>
                         <SelectContent className="bg-slate-800 border-slate-700">
                           {platforms.map(p => <SelectItem key={p.id} value={p.id} className="text-white">{p.name}</SelectItem>)}
@@ -332,6 +334,68 @@ export function AddPostModal({ open, onClose, platforms, topics, onSuccess }: Ad
               </>
             )}
 
+            {/* AI Results inline — shown on ai tab */}
+            {activeTab === 'ai' && (
+              <div className="mt-2">
+                {evaluating && (
+                  <div className="flex flex-col items-center justify-center gap-3 py-12">
+                    <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
+                    <p className="text-slate-400 text-sm">Analyzing post with AI...</p>
+                  </div>
+                )}
+                {aiResult && !evaluating && (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Bot className="w-4 h-4 text-blue-400" />
+                      <h3 className="text-sm font-semibold text-slate-200">AI Evaluation Results</h3>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {aiResult.summary && (
+                        <div className="col-span-full p-3 bg-slate-800/60 rounded-lg">
+                          <p className="text-slate-500 text-xs mb-1">Claim Summary</p>
+                          <p className="text-slate-200 text-sm leading-relaxed">{aiResult.summary}</p>
+                        </div>
+                      )}
+                      <div className="p-3 bg-slate-800/60 rounded-lg">
+                        <p className="text-slate-500 text-xs mb-1">Suggested Severity</p>
+                        <SeverityPill color={aiResult.severity} />
+                      </div>
+                      <div className="p-3 bg-slate-800/60 rounded-lg">
+                        <p className="text-slate-500 text-xs mb-1">Suggested Topic</p>
+                        <span className="px-2 py-0.5 bg-blue-500/15 text-blue-400 text-xs rounded-full border border-blue-500/25">{aiResult.suggested_topic}</span>
+                      </div>
+                      <div className="p-3 bg-slate-800/60 rounded-lg">
+                        <p className="text-slate-500 text-xs mb-1">Evidence Strength</p>
+                        <p className="text-slate-300 text-xs">{aiResult.evidence_level} — {aiResult.evidence_reasoning}</p>
+                      </div>
+                      <div className="p-3 bg-slate-800/60 rounded-lg">
+                        <p className="text-slate-500 text-xs mb-1">Influence Level</p>
+                        <p className={cn('text-xs font-medium', aiResult.influence_level >= 4 ? 'text-orange-400' : aiResult.influence_level >= 3 ? 'text-yellow-400' : 'text-slate-300')}>
+                          {INFLUENCE_LABELS[aiResult.influence_level] ?? `Level ${aiResult.influence_level}`}
+                        </p>
+                      </div>
+                      {aiResult.overall_risk_score !== undefined && (
+                        <div className="p-3 bg-slate-800/60 rounded-lg">
+                          <p className="text-slate-500 text-xs mb-1">Risk Score</p>
+                          <p className={cn('text-xl font-bold tabular-nums', aiResult.overall_risk_score >= 75 ? 'text-red-400' : aiResult.overall_risk_score >= 50 ? 'text-yellow-400' : aiResult.overall_risk_score >= 25 ? 'text-blue-400' : 'text-slate-400')}>
+                            {aiResult.overall_risk_score}<span className="text-slate-600 text-xs font-normal"> / 100</span>
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                    {aiResult.keywords.length > 0 && (
+                      <div className="p-3 bg-slate-800/60 rounded-lg">
+                        <p className="text-slate-500 text-xs mb-2">Keywords</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {aiResult.keywords.map(kw => <span key={kw} className="px-2 py-0.5 bg-slate-700 text-slate-300 text-xs rounded-full">{kw}</span>)}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Tab: Confirm & Save */}
             {activeTab === 'confirm' && aiResult && (
               <div className="space-y-4">
@@ -375,8 +439,8 @@ export function AddPostModal({ open, onClose, platforms, topics, onSuccess }: Ad
             )}
           </div>
 
-          {/* RIGHT: AI Quick Preview */}
-          <div className="w-80 shrink-0 overflow-y-auto p-5 bg-slate-900/50 flex flex-col">
+          {/* RIGHT: AI Quick Preview — hidden, results shown inline */}
+          <div className="hidden">
             <div className="flex items-center gap-2 mb-4">
               <Bot className="w-4 h-4 text-blue-400" />
               <h3 className="text-sm font-semibold text-slate-200">AI Quick Preview</h3>
