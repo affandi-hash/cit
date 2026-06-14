@@ -7,44 +7,26 @@ import { cn } from '@/lib/utils'
 import {
   Shield, LayoutDashboard, FolderOpen, Settings, Users,
   ChevronLeft, ChevronRight, LogOut, BookOpen,
-  TrendingUp, Database, Plus, Eye, Calendar,
-  CheckSquare, Radio
+  TrendingUp, Database, Plus,
+  Calendar, CheckSquare, Radio, Key, Bell, AlertCircle
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import type { UserRole } from '@/types'
 
-const navGroups = [
-  {
-    label: 'Main',
-    items: [
-      { href: '/', label: 'Dashboard', icon: LayoutDashboard, roles: ['super_admin', 'admin', 'investigator', 'viewer'] },
-      { href: '/cases', label: 'Cases', icon: FolderOpen, roles: ['super_admin', 'admin', 'investigator', 'viewer'] },
-      { href: '/narratives', label: 'Narratives', icon: TrendingUp, roles: ['super_admin', 'admin', 'investigator', 'viewer'] },
-      { href: '/reports', label: 'Reports', icon: BookOpen, roles: ['super_admin', 'admin', 'investigator', 'viewer'] },
-    ]
-  },
-  {
-    label: 'Investigation',
-    items: [
-      { href: '/evidence', label: 'Evidence Vault', icon: Database, roles: ['super_admin', 'admin', 'investigator'] },
-      { href: '/accounts', label: 'Accounts', icon: Users, roles: ['super_admin', 'admin', 'investigator'] },
-      { href: '/monitoring', label: 'Monitoring', icon: Radio, roles: ['super_admin', 'admin', 'investigator'] },
-    ]
-  },
-  {
-    label: 'Workspace',
-    items: [
-      { href: '/tasks', label: 'Tasks', icon: CheckSquare, roles: ['super_admin', 'admin', 'investigator'] },
-      { href: '/calendar', label: 'Calendar', icon: Calendar, roles: ['super_admin', 'admin', 'investigator', 'viewer'] },
-    ]
-  },
-  {
-    label: 'System',
-    items: [
-      { href: '/admin', label: 'Settings', icon: Settings, roles: ['super_admin', 'admin'] },
-    ]
-  },
+const NAV_ITEMS = [
+  { href: '/',           label: 'Dashboard',     icon: LayoutDashboard, roles: ['super_admin','admin','investigator','viewer'] },
+  { href: '/cases',      label: 'Cases',          icon: FolderOpen,      roles: ['super_admin','admin','investigator','viewer'] },
+  { href: '/narratives', label: 'Narratives',     icon: TrendingUp,      roles: ['super_admin','admin','investigator','viewer'] },
+  { href: '/admin',      label: 'Keywords',       icon: Key,             roles: ['super_admin','admin'] },
+  { href: '/accounts',   label: 'Accounts',       icon: Users,           roles: ['super_admin','admin','investigator'] },
+  { href: '/monitoring', label: 'Monitoring',     icon: Radio,           roles: ['super_admin','admin','investigator'] },
+  { href: '/evidence',   label: 'Evidence Vault', icon: Database,        roles: ['super_admin','admin','investigator'] },
+  { href: '/legal',      label: 'Legal Review',   icon: AlertCircle,     roles: ['super_admin','admin','investigator'], badge: '12', badgeRed: true },
+  { href: '/reports',    label: 'Reports',        icon: BookOpen,        roles: ['super_admin','admin','investigator','viewer'] },
+  { href: '/tasks',      label: 'Tasks',          icon: CheckSquare,     roles: ['super_admin','admin','investigator'], badge: '24' },
+  { href: '/calendar',   label: 'Calendar',       icon: Calendar,        roles: ['super_admin','admin','investigator','viewer'] },
+  { href: '/alerts',     label: 'Alerts',         icon: Bell,            roles: ['super_admin','admin','investigator'] },
 ]
 
 interface SidebarProps {
@@ -53,7 +35,7 @@ interface SidebarProps {
   userEmail?: string
 }
 
-export function Sidebar({ userRole, userName, userEmail }: SidebarProps) {
+export function Sidebar({ userRole, userName }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
@@ -64,100 +46,165 @@ export function Sidebar({ userRole, userName, userEmail }: SidebarProps) {
     router.push('/login')
   }
 
+  function isActive(href: string) {
+    if (href === '/') return pathname === '/'
+    return pathname === href || pathname.startsWith(href + '/')
+  }
+
   return (
-    <aside className={cn(
-      'flex flex-col h-screen bg-slate-900 border-r border-slate-800 transition-all duration-300 shrink-0',
-      collapsed ? 'w-16' : 'w-56'
-    )}>
+    <aside
+      className={cn(
+        'flex flex-col h-screen shrink-0 transition-all duration-300 overflow-hidden border-r border-white/[0.06]',
+        collapsed ? 'w-[60px]' : 'w-[220px]'
+      )}
+      style={{ background: 'linear-gradient(180deg, #0D1B2A 0%, #081120 100%)' }}
+    >
       {/* Logo */}
-      <div className={cn('flex items-center border-b border-slate-800 h-14 px-4', collapsed ? 'justify-center' : 'gap-3')}>
-        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shrink-0">
+      <div className={cn(
+        'flex items-center border-b border-white/[0.06] h-[64px] px-4 shrink-0',
+        collapsed ? 'justify-center' : 'gap-3'
+      )}>
+        <div
+          className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+          style={{ background: 'linear-gradient(135deg, #0F766E, #0D9488)' }}
+        >
           <Shield className="w-4 h-4 text-white" />
         </div>
         {!collapsed && (
-          <div className="min-w-0">
-            <p className="text-white font-bold text-sm leading-none">CIT</p>
-            <p className="text-slate-500 text-[10px] leading-none mt-0.5 truncate">Claim Intelligence</p>
+          <div className="min-w-0 flex-1">
+            <p className="text-white font-bold text-[10px] leading-tight tracking-widest uppercase">Claim Intelligence</p>
+            <p className="text-[9px] leading-tight mt-0.5 truncate" style={{ color: '#2DD4BF' }}>
+              Evidence · Intelligence · Protection
+            </p>
           </div>
         )}
         {!collapsed && (
-          <button onClick={() => setCollapsed(true)} className="ml-auto text-slate-600 hover:text-slate-400 p-0.5">
+          <button
+            onClick={() => setCollapsed(true)}
+            className="text-white/20 hover:text-white/60 transition-colors ml-1 shrink-0"
+          >
             <ChevronLeft className="w-3.5 h-3.5" />
           </button>
         )}
       </div>
 
       {collapsed && (
-        <button onClick={() => setCollapsed(false)} className="flex justify-center py-2 text-slate-600 hover:text-slate-400 border-b border-slate-800">
+        <button
+          onClick={() => setCollapsed(false)}
+          className="flex justify-center py-2 border-b border-white/[0.06] text-white/20 hover:text-white/60 transition-colors"
+        >
           <ChevronRight className="w-3.5 h-3.5" />
         </button>
       )}
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-4">
-        {navGroups.map(group => {
-          const visibleItems = group.items.filter(item => item.roles.includes(userRole))
-          if (visibleItems.length === 0) return null
+      <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
+        {NAV_ITEMS.filter(item => item.roles.includes(userRole)).map(item => {
+          const Icon = item.icon
+          const active = isActive(item.href)
           return (
-            <div key={group.label}>
-              {!collapsed && (
-                <p className="text-slate-600 text-[10px] font-semibold uppercase tracking-wider px-2 mb-1">{group.label}</p>
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                'flex items-center gap-2.5 px-2.5 py-[7px] rounded-lg text-[13px] font-medium transition-all duration-150 group relative',
+                active ? 'text-teal-300' : 'text-white/40 hover:text-white/80 hover:bg-white/[0.04]',
+                collapsed && 'justify-center'
               )}
-              <div className="space-y-0.5">
-                {visibleItems.map(item => {
-                  const Icon = item.icon
-                  const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))
-                  return (
-                    <Link key={item.href} href={item.href}
-                      className={cn(
-                        'flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm font-medium transition-colors',
-                        isActive
-                          ? 'bg-blue-600/15 text-blue-400'
-                          : 'text-slate-500 hover:text-slate-200 hover:bg-slate-800',
-                        collapsed && 'justify-center'
-                      )}>
-                      <Icon className="w-4 h-4 shrink-0" />
-                      {!collapsed && <span className="truncate">{item.label}</span>}
-                    </Link>
-                  )
-                })}
-              </div>
-            </div>
+              style={active ? { background: 'rgba(15,118,110,0.18)' } : {}}
+            >
+              {active && !collapsed && (
+                <span
+                  className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full"
+                  style={{ background: '#0F766E' }}
+                />
+              )}
+              <Icon className={cn(
+                'w-4 h-4 shrink-0 transition-colors',
+                active ? 'text-teal-400' : 'text-white/25 group-hover:text-white/55'
+              )} />
+              {!collapsed && <span className="flex-1 truncate">{item.label}</span>}
+              {!collapsed && item.badge && (
+                <span
+                  className="text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center leading-none text-white"
+                  style={{ background: item.badgeRed ? '#DC2626' : '#0F766E' }}
+                >
+                  {item.badge}
+                </span>
+              )}
+            </Link>
           )
         })}
+
+        <div className="my-3 mx-1 border-t border-white/[0.06]" />
+
+        {/* Settings */}
+        {['super_admin', 'admin'].includes(userRole) && (
+          <Link
+            href="/admin"
+            className={cn(
+              'flex items-center gap-2.5 px-2.5 py-[7px] rounded-lg text-[13px] font-medium transition-all duration-150 group',
+              isActive('/admin') ? 'text-teal-300' : 'text-white/40 hover:text-white/80 hover:bg-white/[0.04]',
+              collapsed && 'justify-center'
+            )}
+            style={isActive('/admin') ? { background: 'rgba(15,118,110,0.18)' } : {}}
+          >
+            <Settings className={cn('w-4 h-4 shrink-0', isActive('/admin') ? 'text-teal-400' : 'text-white/25 group-hover:text-white/55')} />
+            {!collapsed && <span>Settings</span>}
+          </Link>
+        )}
+
+        <Link
+          href="/help"
+          className={cn(
+            'flex items-center gap-2.5 px-2.5 py-[7px] rounded-lg text-[13px] font-medium transition-all duration-150 group text-white/30 hover:text-white/60 hover:bg-white/[0.04]',
+            collapsed && 'justify-center'
+          )}
+        >
+          <span className={cn('w-4 h-4 shrink-0 text-center text-[11px] border border-white/20 rounded-full leading-none flex items-center justify-center group-hover:border-white/40')}>?</span>
+          {!collapsed && <span>Help &amp; Support</span>}
+        </Link>
       </nav>
 
-      {/* Add button */}
-      {!collapsed && (
-        <div className="px-3 pb-3">
-          <Link href="/cases?add=1"
-            className="flex items-center justify-center gap-2 w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors">
-            <Plus className="w-4 h-4" />
-            Add & Evaluate Post
-          </Link>
-        </div>
-      )}
+      {/* Add & Evaluate Button */}
+      <div className={cn('px-3 pb-3', collapsed && 'px-2')}>
+        <Link
+          href="/cases?add=1"
+          className={cn(
+            'flex items-center justify-center gap-2 w-full py-2.5 text-white text-[13px] font-semibold rounded-lg transition-all hover:brightness-110 active:scale-[0.98]',
+          )}
+          style={{ background: 'linear-gradient(135deg, #0F766E, #0D9488)' }}
+        >
+          <Plus className="w-4 h-4 shrink-0" />
+          {!collapsed && 'Add & Evaluate Post'}
+        </Link>
+      </div>
 
-      {/* Footer */}
-      <div className="border-t border-slate-800 p-3">
+      {/* Footer / User */}
+      <div className="border-t border-white/[0.06] p-3">
         {!collapsed && (
-          <div className="flex items-center gap-2 mb-2 px-1">
-            <div className="w-7 h-7 bg-blue-600 rounded-full flex items-center justify-center shrink-0">
-              <span className="text-white text-xs font-bold">{userName.charAt(0).toUpperCase()}</span>
+          <div className="flex items-center gap-2.5 px-1 py-1.5 mb-1">
+            <div
+              className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-white text-xs font-bold"
+              style={{ background: 'linear-gradient(135deg, #0F766E, #0D9488)' }}
+            >
+              {userName.charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-slate-300 text-xs font-medium truncate">{userName}</p>
-              <p className="text-slate-600 text-[10px] capitalize truncate">{userRole.replace('_', ' ')}</p>
+              <p className="text-white/80 text-xs font-medium truncate">{userName}</p>
+              <p className="text-white/30 text-[10px] capitalize truncate">{userRole.replace('_', ' ')}</p>
             </div>
           </div>
         )}
-        <button onClick={handleLogout}
+        <button
+          onClick={handleLogout}
           className={cn(
-            'flex items-center gap-2 px-2 py-2 rounded-lg text-xs text-slate-500 hover:text-white hover:bg-slate-800 w-full transition-colors',
+            'flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] text-white/30 hover:text-white/70 hover:bg-white/[0.04] w-full transition-all',
             collapsed && 'justify-center'
-          )}>
-          <LogOut className="w-3.5 h-3.5 shrink-0" />
-          {!collapsed && 'Sign Out'}
+          )}
+        >
+          <LogOut className="w-4 h-4 shrink-0" />
+          {!collapsed && <span>Sign Out</span>}
         </button>
       </div>
     </aside>

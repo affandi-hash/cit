@@ -1,3 +1,9 @@
+-- Ensure updated_at trigger function exists
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN NEW.updated_at = now(); RETURN NEW; END;
+$$ language 'plpgsql';
+
 -- Keyword Groups
 CREATE TABLE keyword_groups (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -123,7 +129,6 @@ FROM keyword_groups g,
   ('franchise', 35, 'BLUE', 'Low', false),
   ('licensing', 35, 'BLUE', 'Low', false),
   ('royalty', 40, 'BLUE', 'Low', false),
-  ('payment delay', 60, 'YELLOW', 'Medium', false),
   ('breach of contract', 75, 'RED', 'High', false)
 ) AS k(keyword, sev, color, impact, legal)
 WHERE g.name = 'Business';

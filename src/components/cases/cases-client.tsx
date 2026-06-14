@@ -10,11 +10,14 @@ import { ScoreBar } from './score-bar'
 import { CaseDetailModal } from './case-detail-modal'
 import { AddPostModal } from './add-post-modal'
 import {
-  Search, Filter, Plus, Download, ChevronUp, ChevronDown,
-  ExternalLink, MoreHorizontal
+  Search, Plus, Download, ChevronUp, ChevronDown,
+  Pencil, Trash2
 } from 'lucide-react'
 import { format } from 'date-fns'
 import type { Platform, Topic, SeverityColor, CaseStatus } from '@/types'
+import { EditCaseModal } from './edit-case-modal'
+import { createClient } from '@/lib/supabase/client'
+import { toast } from 'sonner'
 
 interface CaseRow {
   id: string
@@ -30,6 +33,12 @@ interface CaseRow {
   ai_summary: string | null
   created_at: string
   updated_at: string
+  post_owner_name: string | null
+  post_datetime: string | null
+  emoji_count: number | null
+  post_comments: number | null
+  post_shares: number | null
+  account_id: string | null
   platforms: { id: string; name: string } | null
   topics: { id: string; name: string } | null
   accounts: { id: string; name: string | null; username: string | null } | null
@@ -58,7 +67,8 @@ type SortDir = 'asc' | 'desc'
 export function CasesClient({ initialCases, platforms, topics, investigators }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [cases] = useState(initialCases)
+  const supabase = createClient()
+  const [cases, setCases] = useState(initialCases)
   const [search, setSearch] = useState('')
   const [filterPlatform, setFilterPlatform] = useState('all')
   const [filterTopic, setFilterTopic] = useState('all')
@@ -67,7 +77,24 @@ export function CasesClient({ initialCases, platforms, topics, investigators }: 
   const [sortKey, setSortKey] = useState<SortKey>('created_at' as SortKey)
   const [sortDir, setSortDir] = useState<SortDir>('desc')
   const [selectedCase, setSelectedCase] = useState<CaseRow | null>(null)
+  const [editCase, setEditCase] = useState<CaseRow | null>(null)
   const [addModalOpen, setAddModalOpen] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+
+  async function deleteCase(e: React.MouseEvent, c: CaseRow) {
+    e.stopPropagation()
+    if (!confirm(`Delete case ${c.case_number}? This cannot be undone.`)) return
+    setDeletingId(c.id)
+    const { error } = await supabase.from('cases').delete().eq('id', c.id)
+    setDeletingId(null)
+    if (error) { toast.error('Failed to delete case'); return }
+    setCases(prev => prev.filter(x => x.id !== c.id))
+    toast.success(`${c.case_number} deleted`)
+  }
+
+  useEffect(() => {
+    setCases(initialCases)
+  }, [initialCases])
 
   useEffect(() => {
     if (searchParams.get('add') === '1') {
@@ -266,10 +293,21 @@ export function CasesClient({ initialCases, platforms, topics, investigators }: 
                       {(() => { const p = Array.isArray(c.profiles) ? c.profiles[0] : c.profiles; return p?.full_name ?? p?.email ?? '—' })()}
                     </td>
                     <td className="px-4 py-3">
-                      <button onClick={e => { e.stopPropagation(); setSelectedCase(c) }}
-                        className="text-slate-600 hover:text-white p-1 rounded">
-                        <MoreHorizontal className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={e => { e.stopPropagation(); setEditCase(c) }}
+                          className="p-1.5 rounded-lg text-slate-600 hover:text-blue-400 hover:bg-blue-400/10 transition-colors"
+                          title="Edit">
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={e => deleteCase(e, c)}
+                          disabled={deletingId === c.id}
+                          className="p-1.5 rounded-lg text-slate-600 hover:text-red-400 hover:bg-red-400/10 transition-colors disabled:opacity-40"
+                          title="Delete">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -296,6 +334,20 @@ export function CasesClient({ initialCases, platforms, topics, investigators }: 
         topics={topics}
         onSuccess={() => router.refresh()}
       />
+
+      {editCase && (
+        <EditCaseModal
+          open={!!editCase}
+          onClose={() => setEditCase(null)}
+          onSaved={() => {
+            setEditCase(null)
+            router.refresh()
+          }}
+          platforms={platforms}
+          topics={topics}
+          caseData={editCase}
+        />
+      )}
     </div>
   )
 }

@@ -68,22 +68,29 @@ export function DashboardClient({
   const dateLabel = `${format(new Date(today.getFullYear(), today.getMonth() - 1, today.getDate()), 'dd MMM yyyy')} – ${format(today, 'dd MMM yyyy')}`
 
   return (
-    <div className="flex flex-col h-full bg-slate-950">
+    <div className="flex flex-col h-full" style={{ background: '#0A1628' }}>
       {/* Top bar */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 shrink-0">
-        <h1 className="text-xl font-bold text-white">Dashboard</h1>
+      <div className="flex items-center justify-between px-6 py-4 border-b shrink-0" style={{ borderColor: 'rgba(255,255,255,0.07)' }}>
+        <div>
+          <h2 className="font-semibold text-white" style={{ fontSize: 24 }}>Dashboard</h2>
+          <p className="text-xs mt-0.5" style={{ color: '#64748B' }}>Claim Intelligence Overview</p>
+        </div>
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-xs text-slate-400">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: '#94A3B8' }}>
             <Calendar className="w-3.5 h-3.5" />
             {dateLabel}
           </div>
-          <button onClick={() => router.refresh()} className="relative p-2 text-slate-500 hover:text-white hover:bg-slate-800 rounded-lg transition-colors">
+          <button onClick={() => router.refresh()} className="relative p-2 rounded-lg transition-colors" style={{ color: '#64748B' }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
             <RefreshCw className="w-4 h-4" />
           </button>
-          <button className="relative p-2 text-slate-500 hover:text-white hover:bg-slate-800 rounded-lg transition-colors">
+          <button className="relative p-2 rounded-lg transition-colors" style={{ color: '#64748B' }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
             <Bell className="w-4 h-4" />
             {stats.red_cases > 0 && (
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+              <span className="absolute top-1 right-1 w-2 h-2 rounded-full" style={{ background: '#DC2626' }} />
             )}
           </button>
         </div>
@@ -123,7 +130,8 @@ export function DashboardClient({
       <div className="fixed bottom-6 right-6 z-50">
         <Button
           onClick={() => setAddModalOpen(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 h-11 shadow-xl shadow-blue-600/30 rounded-xl"
+          className="text-white font-semibold px-5 h-11 rounded-xl"
+          style={{ background: 'linear-gradient(135deg, #0F766E, #0D9488)', boxShadow: '0 8px 24px rgba(15,118,110,0.35)' }}
           size="lg"
         >
           <Plus className="w-5 h-5 mr-2" />

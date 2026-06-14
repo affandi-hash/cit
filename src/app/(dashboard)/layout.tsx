@@ -19,7 +19,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const name = profile?.full_name ?? profile?.email ?? 'User'
 
   return (
-    <div className="flex h-screen bg-slate-950 overflow-hidden">
+    <div className="flex h-screen overflow-hidden" style={{ background: '#0A1628' }}>
       <Sidebar userRole={role} userName={name} />
       <main className="flex-1 overflow-y-auto">
         {children}

@@ -301,8 +301,8 @@ export function AdminClient({
         <TabsContent value="keywords">
           <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-5">
             <KeywordLibrary
-              initialGroups={keywordGroups as Parameters<typeof KeywordLibrary>[0]['initialGroups']}
-              initialKeywords={keywords as Parameters<typeof KeywordLibrary>[0]['initialKeywords']}
+              initialGroups={keywordGroups as unknown as Parameters<typeof KeywordLibrary>[0]['initialGroups']}
+              initialKeywords={keywords as unknown as Parameters<typeof KeywordLibrary>[0]['initialKeywords']}
             />
           </div>
         </TabsContent>

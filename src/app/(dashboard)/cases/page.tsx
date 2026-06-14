@@ -14,6 +14,7 @@ export default async function CasesPage() {
       id, case_number, date_found, status, source_type, url,
       severity_color, influence_score, evidence_strength_score, overall_risk_score,
       ai_summary, created_at, updated_at,
+      post_owner_name, post_datetime, emoji_count, post_comments, post_shares,
       platforms(id, name),
       topics(id, name),
       accounts(id, name, username)
