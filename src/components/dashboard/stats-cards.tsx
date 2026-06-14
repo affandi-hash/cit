@@ -1,6 +1,28 @@
 'use client'
 
-import { FolderOpen, MessageSquare, AlertTriangle, Globe, Tag, Users, Ghost } from 'lucide-react'
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
+import { cn } from '@/lib/utils'
+
+interface StatCard {
+  label: string
+  value: number
+  trend?: number
+  color: string
+  bg: string
+  border: string
+  dot?: string
+}
+
+const cards: StatCard[] = [
+  { label: 'Total Cases', value: 0, color: 'text-white', bg: 'bg-slate-800/60', border: 'border-slate-700' },
+  { label: 'Red Cases', value: 0, color: 'text-red-400', bg: 'bg-red-500/5', border: 'border-red-500/20', dot: 'bg-red-500' },
+  { label: 'Yellow Cases', value: 0, color: 'text-yellow-400', bg: 'bg-yellow-500/5', border: 'border-yellow-500/20', dot: 'bg-yellow-500' },
+  { label: 'Blue Cases', value: 0, color: 'text-blue-400', bg: 'bg-blue-500/5', border: 'border-blue-500/20', dot: 'bg-blue-500' },
+  { label: 'Grey Cases', value: 0, color: 'text-slate-400', bg: 'bg-slate-700/30', border: 'border-slate-600/40', dot: 'bg-slate-500' },
+  { label: 'Avg Risk Score', value: 0, color: 'text-orange-400', bg: 'bg-orange-500/5', border: 'border-orange-500/20' },
+]
+
+const keyMap = ['total_cases', 'red_cases', 'yellow_cases', 'blue_cases', 'grey_cases', 'avg_risk_score'] as const
 
 interface StatsCardsProps {
   stats: {
@@ -15,42 +37,63 @@ interface StatsCardsProps {
     total_fake_accounts: number
     total_posts: number
     total_comments: number
+    avg_risk_score?: number
   }
+  trends?: Partial<Record<string, number>>
 }
 
-const cards = [
-  { key: 'total_cases', label: 'Total Cases', icon: FolderOpen, color: 'text-slate-300', bg: 'bg-slate-700/40', border: 'border-slate-700' },
-  { key: 'total_posts', label: 'Total Posts', icon: MessageSquare, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
-  { key: 'red_cases', label: 'RED Cases', icon: AlertTriangle, color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/20' },
-  { key: 'yellow_cases', label: 'YELLOW Cases', icon: AlertTriangle, color: 'text-yellow-400', bg: 'bg-yellow-500/10', border: 'border-yellow-500/20' },
-  { key: 'blue_cases', label: 'BLUE Cases', icon: AlertTriangle, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
-  { key: 'grey_cases', label: 'GREY Cases', icon: AlertTriangle, color: 'text-slate-400', bg: 'bg-slate-500/10', border: 'border-slate-500/20' },
-  { key: 'total_platforms', label: 'Platforms', icon: Globe, color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/20' },
-  { key: 'total_topics', label: 'Topics', icon: Tag, color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/20' },
-  { key: 'total_influencers', label: 'Influencers', icon: Users, color: 'text-pink-400', bg: 'bg-pink-500/10', border: 'border-pink-500/20' },
-  { key: 'total_fake_accounts', label: 'Fake Accounts', icon: Ghost, color: 'text-rose-400', bg: 'bg-rose-500/10', border: 'border-rose-500/20' },
-  { key: 'total_comments', label: 'Comments', icon: MessageSquare, color: 'text-cyan-400', bg: 'bg-cyan-500/10', border: 'border-cyan-500/20' },
-]
+export function StatsCards({ stats, trends = {} }: StatsCardsProps) {
+  const values: Record<string, number> = {
+    total_cases: stats.total_cases,
+    red_cases: stats.red_cases,
+    yellow_cases: stats.yellow_cases,
+    blue_cases: stats.blue_cases,
+    grey_cases: stats.grey_cases,
+    avg_risk_score: stats.avg_risk_score ?? 0,
+  }
 
-export function StatsCards({ stats }: StatsCardsProps) {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
-      {cards.map(card => {
-        const Icon = card.icon
-        const value = stats[card.key as keyof typeof stats] ?? 0
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      {cards.map((card, i) => {
+        const key = keyMap[i]
+        const value = values[key] ?? 0
+        const trend = trends[key]
+        const isScore = key === 'avg_risk_score'
+
         return (
-          <div key={card.key}
-            className={`rounded-xl border ${card.border} ${card.bg} p-4 flex flex-col gap-2`}>
-            <div className={`${card.color}`}>
-              <Icon className="w-4 h-4" />
+          <div key={key} className={cn('rounded-xl border p-4 flex flex-col gap-3', card.bg, card.border)}>
+            <div className="flex items-center justify-between">
+              {card.dot && <span className={cn('w-2 h-2 rounded-full', card.dot)} />}
+              {trend !== undefined && (
+                <TrendIndicator value={trend} />
+              )}
             </div>
             <div>
-              <p className={`text-2xl font-bold ${card.color}`}>{value.toLocaleString()}</p>
+              <p className={cn('text-2xl font-bold tabular-nums', card.color)}>
+                {isScore ? value.toFixed(1) : value.toLocaleString()}
+                {isScore && <span className="text-sm font-normal text-slate-600">/100</span>}
+              </p>
               <p className="text-slate-500 text-xs mt-0.5">{card.label}</p>
             </div>
           </div>
         )
       })}
+    </div>
+  )
+}
+
+function TrendIndicator({ value }: { value: number }) {
+  if (value === 0) return <Minus className="w-3 h-3 text-slate-600" />
+  if (value > 0) return (
+    <div className="flex items-center gap-0.5 text-emerald-400">
+      <TrendingUp className="w-3 h-3" />
+      <span className="text-[10px] font-medium">+{value.toFixed(1)}%</span>
+    </div>
+  )
+  return (
+    <div className="flex items-center gap-0.5 text-red-400">
+      <TrendingDown className="w-3 h-3" />
+      <span className="text-[10px] font-medium">{value.toFixed(1)}%</span>
     </div>
   )
 }
