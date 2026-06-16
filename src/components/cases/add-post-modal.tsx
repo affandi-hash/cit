@@ -216,13 +216,18 @@ export function AddPostModal({ open, onClose, platforms, topics, onSuccess }: Ad
         ? topics.find(t => t.name.toLowerCase() === aiResult.suggested_topic?.toLowerCase())
         : null
 
-      // Auto-create account from AI extraction or manual details if no account selected
+      // Auto-create account from AI extraction, focus subject, or manual details if no account selected
       let resolvedAccountId = form.account_id || null
       const hasAiAccount = saveExtractedAccount && aiResult && (aiResult.post_owner_name || aiResult.account_username)
+      const hasFocusSubject = !!form.focus_subject.trim()
       const hasManualDetails = Object.values(accDetails).some(v => v.trim())
-      if (!resolvedAccountId && (hasAiAccount || hasManualDetails)) {
+      if (!resolvedAccountId && (hasAiAccount || hasFocusSubject || hasManualDetails)) {
+        // Focus subject name takes priority; fall back to AI-extracted name
+        const accountName = hasFocusSubject
+          ? form.focus_subject.trim()
+          : (aiResult?.post_owner_name ?? null)
         const { data: newAccount } = await supabase.from('accounts').insert({
-          name: aiResult?.post_owner_name ?? null,
+          name: accountName,
           username: aiResult?.account_username ?? null,
           profile_url: aiResult?.account_profile_url ?? null,
           followers: aiResult?.account_followers ?? null,
