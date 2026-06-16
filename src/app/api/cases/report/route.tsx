@@ -138,7 +138,7 @@ const S = StyleSheet.create({
   kwC3: { flex: 1, fontSize: 7, color: DARK, textAlign: 'center' },
   kwH: { color: WHITE, fontFamily: 'Helvetica-Bold' },
   // Evidence
-  evidenceImage: { width: '100%', marginTop: 4, marginBottom: 8, borderWidth: 1, borderColor: '#E2E8F0' },
+  evidenceImage: { maxWidth: '100%', marginTop: 4, marginBottom: 8, borderWidth: 1, borderColor: '#E2E8F0', objectFit: 'contain' },
   severityPill: {
     paddingHorizontal: 10,
     paddingVertical: 3,
