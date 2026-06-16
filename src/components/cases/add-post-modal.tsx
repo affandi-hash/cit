@@ -116,9 +116,14 @@ export function AddPostModal({ open, onClose, platforms, topics, onSuccess }: Ad
     initial_notes: '',
     screenshots: [] as File[],
   })
+  const [accDetails, setAccDetails] = useState({
+    ic_number: '', email_address: '', phone_number: '', phone_number_2: '',
+    website: '', address: '', office_address: '', business_details: '',
+  })
 
   function reset() {
     setForm({ platform_id: '', account_id: '', url: '', source_type: 'post_owner', initial_notes: '', screenshots: [] })
+    setAccDetails({ ic_number: '', email_address: '', phone_number: '', phone_number_2: '', website: '', address: '', office_address: '', business_details: '' })
     setAiResult(null)
     setConfirmed(false)
   }
@@ -209,17 +214,39 @@ export function AddPostModal({ open, onClose, platforms, topics, onSuccess }: Ad
         ? topics.find(t => t.name.toLowerCase() === aiResult.suggested_topic?.toLowerCase())
         : null
 
-      // Auto-create account from AI extraction if user opted in and no account manually selected
+      // Auto-create account from AI extraction or manual details if no account selected
       let resolvedAccountId = form.account_id || null
-      if (!resolvedAccountId && saveExtractedAccount && aiResult && (aiResult.post_owner_name || aiResult.account_username)) {
+      const hasAiAccount = saveExtractedAccount && aiResult && (aiResult.post_owner_name || aiResult.account_username)
+      const hasManualDetails = Object.values(accDetails).some(v => v.trim())
+      if (!resolvedAccountId && (hasAiAccount || hasManualDetails)) {
         const { data: newAccount } = await supabase.from('accounts').insert({
-          name: aiResult.post_owner_name ?? null,
-          username: aiResult.account_username ?? null,
-          profile_url: aiResult.account_profile_url ?? null,
-          followers: aiResult.account_followers ?? null,
-          is_verified: aiResult.account_is_verified ?? false,
+          name: aiResult?.post_owner_name ?? null,
+          username: aiResult?.account_username ?? null,
+          profile_url: aiResult?.account_profile_url ?? null,
+          followers: aiResult?.account_followers ?? null,
+          is_verified: aiResult?.account_is_verified ?? false,
+          ic_number: accDetails.ic_number || null,
+          email_address: accDetails.email_address || null,
+          phone_number: accDetails.phone_number || null,
+          phone_number_2: accDetails.phone_number_2 || null,
+          website: accDetails.website || null,
+          address: accDetails.address || null,
+          office_address: accDetails.office_address || null,
+          business_details: accDetails.business_details || null,
         }).select('id').single()
         if (newAccount) resolvedAccountId = newAccount.id
+      } else if (resolvedAccountId && hasManualDetails) {
+        // Update existing selected account with any filled details
+        await supabase.from('accounts').update({
+          ic_number: accDetails.ic_number || null,
+          email_address: accDetails.email_address || null,
+          phone_number: accDetails.phone_number || null,
+          phone_number_2: accDetails.phone_number_2 || null,
+          website: accDetails.website || null,
+          address: accDetails.address || null,
+          office_address: accDetails.office_address || null,
+          business_details: accDetails.business_details || null,
+        }).eq('id', resolvedAccountId)
       }
 
       const { data: newCase, error } = await supabase.from('cases').insert({
@@ -396,7 +423,7 @@ export function AddPostModal({ open, onClose, platforms, topics, onSuccess }: Ad
             </div>
 
             {/* Account */}
-            <div className="space-y-1.5 mb-4">
+            <div className="space-y-1.5">
               <Label className="text-xs" style={{ color: '#64748B' }}>Account (Perpetrator)</Label>
               <Select value={form.account_id} onValueChange={v => setForm(f => ({ ...f, account_id: v ?? '' }))}>
                 <SelectTrigger className="h-9 text-sm border" style={{ background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.1)', color: '#F1F5F9' }}>
@@ -415,6 +442,63 @@ export function AddPostModal({ open, onClose, platforms, topics, onSuccess }: Ad
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            {/* Account Details */}
+            <div className="rounded-xl p-4 mb-2 space-y-3" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+              <p className="text-[10px] uppercase tracking-wider font-semibold" style={{ color: '#64748B' }}>Account Details <span className="normal-case font-normal">(optional — saved with account)</span></p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-[10px] uppercase" style={{ color: '#64748B' }}>IC / ID Number</Label>
+                  <input value={accDetails.ic_number} onChange={e => setAccDetails(p => ({ ...p, ic_number: e.target.value }))}
+                    placeholder="e.g. 901231-14-5678"
+                    className="w-full h-8 px-3 rounded-lg text-sm text-white bg-transparent border border-white/10 placeholder:text-slate-600 focus:outline-none focus:border-white/20" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px] uppercase" style={{ color: '#64748B' }}>Email Address</Label>
+                  <input value={accDetails.email_address} onChange={e => setAccDetails(p => ({ ...p, email_address: e.target.value }))}
+                    placeholder="name@email.com"
+                    className="w-full h-8 px-3 rounded-lg text-sm text-white bg-transparent border border-white/10 placeholder:text-slate-600 focus:outline-none focus:border-white/20" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-[10px] uppercase" style={{ color: '#64748B' }}>Phone Number 1</Label>
+                  <input value={accDetails.phone_number} onChange={e => setAccDetails(p => ({ ...p, phone_number: e.target.value }))}
+                    placeholder="+60123456789"
+                    className="w-full h-8 px-3 rounded-lg text-sm text-white bg-transparent border border-white/10 placeholder:text-slate-600 focus:outline-none focus:border-white/20" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px] uppercase" style={{ color: '#64748B' }}>Phone Number 2</Label>
+                  <input value={accDetails.phone_number_2} onChange={e => setAccDetails(p => ({ ...p, phone_number_2: e.target.value }))}
+                    placeholder="+60198765432"
+                    className="w-full h-8 px-3 rounded-lg text-sm text-white bg-transparent border border-white/10 placeholder:text-slate-600 focus:outline-none focus:border-white/20" />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[10px] uppercase" style={{ color: '#64748B' }}>Website</Label>
+                <input value={accDetails.website} onChange={e => setAccDetails(p => ({ ...p, website: e.target.value }))}
+                  placeholder="https://..."
+                  className="w-full h-8 px-3 rounded-lg text-sm text-white bg-transparent border border-white/10 placeholder:text-slate-600 focus:outline-none focus:border-white/20" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[10px] uppercase" style={{ color: '#64748B' }}>Home / Residential Address</Label>
+                <input value={accDetails.address} onChange={e => setAccDetails(p => ({ ...p, address: e.target.value }))}
+                  placeholder="Street, city..."
+                  className="w-full h-8 px-3 rounded-lg text-sm text-white bg-transparent border border-white/10 placeholder:text-slate-600 focus:outline-none focus:border-white/20" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[10px] uppercase" style={{ color: '#64748B' }}>Office Address</Label>
+                <input value={accDetails.office_address} onChange={e => setAccDetails(p => ({ ...p, office_address: e.target.value }))}
+                  placeholder="Office / business address..."
+                  className="w-full h-8 px-3 rounded-lg text-sm text-white bg-transparent border border-white/10 placeholder:text-slate-600 focus:outline-none focus:border-white/20" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[10px] uppercase" style={{ color: '#64748B' }}>Business Details</Label>
+                <textarea value={accDetails.business_details} onChange={e => setAccDetails(p => ({ ...p, business_details: e.target.value }))}
+                  rows={2} placeholder="Business registration, type, activities..."
+                  className="w-full px-3 py-2 rounded-lg text-sm text-white bg-transparent border border-white/10 placeholder:text-slate-600 focus:outline-none focus:border-white/20 resize-none" />
+              </div>
             </div>
 
             {/* URL */}

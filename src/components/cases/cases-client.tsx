@@ -241,7 +241,6 @@ export function CasesClient({ initialCases, platforms, topics, investigators }: 
                   { label: 'Account' },
                   { label: 'Topic' },
                   { label: 'Summary' },
-                  { label: 'Severity' },
                   { label: 'Risk Score', key: 'overall_risk_score' as SortKey },
                   { label: 'Status' },
                   { label: 'Investigator' },
@@ -261,7 +260,7 @@ export function CasesClient({ initialCases, platforms, topics, investigators }: 
             <tbody className="divide-y divide-slate-700/50">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="px-4 py-12 text-center text-slate-600">
+                  <td colSpan={10} className="px-4 py-12 text-center text-slate-600">
                     No cases found. Add your first post to get started.
                   </td>
                 </tr>
@@ -269,7 +268,12 @@ export function CasesClient({ initialCases, platforms, topics, investigators }: 
                 filtered.map(c => (
                   <tr key={c.id} className="hover:bg-slate-700/30 cursor-pointer transition-colors"
                     onClick={() => setSelectedCase(c)}>
-                    <td className="px-4 py-3 font-mono text-red-400 text-xs whitespace-nowrap">{c.case_number}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-red-400 text-xs">{c.case_number}</span>
+                        <SeverityBadge color={c.severity_color} />
+                      </div>
+                    </td>
                     <td className="px-4 py-3 text-slate-400 text-xs whitespace-nowrap">
                       {format(new Date(c.date_found), 'dd MMM yy')}
                     </td>
@@ -282,7 +286,6 @@ export function CasesClient({ initialCases, platforms, topics, investigators }: 
                     <td className="px-4 py-3 text-slate-400 text-xs max-w-xs">
                       <p className="truncate">{c.ai_summary ?? '—'}</p>
                     </td>
-                    <td className="px-4 py-3"><SeverityBadge color={c.severity_color} /></td>
                     <td className="px-4 py-3"><ScoreBar score={c.overall_risk_score} /></td>
                     <td className="px-4 py-3">
                       <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[c.status] ?? ''}`}>

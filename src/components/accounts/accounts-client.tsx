@@ -22,10 +22,16 @@ interface Account {
   followers: number | null
   following: number | null
   is_verified: boolean
+  ic_number: string | null
+  email_address: string | null
+  phone_number: string | null
+  phone_number_2: string | null
+  website: string | null
+  address: string | null
+  office_address: string | null
+  business_details: string | null
   workplace: string | null
   company: string | null
-  phone_number: string | null
-  address: string | null
   notes: string | null
   name_status: VerificationStatus
   username_status: VerificationStatus
@@ -52,10 +58,16 @@ const EMPTY_FORM = {
   followers: '',
   following: '',
   is_verified: false,
+  ic_number: '',
+  email_address: '',
+  phone_number: '',
+  phone_number_2: '',
+  website: '',
+  address: '',
+  office_address: '',
+  business_details: '',
   workplace: '',
   company: '',
-  phone_number: '',
-  address: '',
   notes: '',
   name_status: 'unverified' as VerificationStatus,
   username_status: 'unverified' as VerificationStatus,
@@ -104,10 +116,16 @@ export function AccountsClient({ initialAccounts, accountTypes }: Props) {
       followers: acc.followers?.toString() ?? '',
       following: acc.following?.toString() ?? '',
       is_verified: acc.is_verified,
+      ic_number: acc.ic_number ?? '',
+      email_address: acc.email_address ?? '',
+      phone_number: acc.phone_number ?? '',
+      phone_number_2: acc.phone_number_2 ?? '',
+      website: acc.website ?? '',
+      address: acc.address ?? '',
+      office_address: acc.office_address ?? '',
+      business_details: acc.business_details ?? '',
       workplace: acc.workplace ?? '',
       company: acc.company ?? '',
-      phone_number: acc.phone_number ?? '',
-      address: acc.address ?? '',
       notes: acc.notes ?? '',
       name_status: acc.name_status,
       username_status: acc.username_status,
@@ -137,10 +155,16 @@ export function AccountsClient({ initialAccounts, accountTypes }: Props) {
       followers: form.followers ? Number(form.followers) : null,
       following: form.following ? Number(form.following) : null,
       is_verified: form.is_verified,
+      ic_number: form.ic_number || null,
+      email_address: form.email_address || null,
+      phone_number: form.phone_number || null,
+      phone_number_2: form.phone_number_2 || null,
+      website: form.website || null,
+      address: form.address || null,
+      office_address: form.office_address || null,
+      business_details: form.business_details || null,
       workplace: form.workplace || null,
       company: form.company || null,
-      phone_number: form.phone_number || null,
-      address: form.address || null,
       notes: form.notes || null,
       name_status: form.name_status,
       username_status: form.username_status,
@@ -349,6 +373,58 @@ export function AccountsClient({ initialAccounts, accountTypes }: Props) {
               </div>
             </div>
 
+            {/* Personal / Contact */}
+            <div className="border-t border-slate-700 pt-3">
+              <p className="text-slate-500 text-[10px] uppercase tracking-wider mb-3">Personal &amp; Contact</p>
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-slate-400 text-xs">IC / ID Number</Label>
+                    <Input value={form.ic_number} onChange={e => set('ic_number', e.target.value)}
+                      placeholder="e.g. 901231-14-5678" className="bg-slate-800 border-slate-700 text-white text-sm" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-slate-400 text-xs">Email Address</Label>
+                    <Input type="email" value={form.email_address} onChange={e => set('email_address', e.target.value)}
+                      placeholder="e.g. name@email.com" className="bg-slate-800 border-slate-700 text-white text-sm" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-slate-400 text-xs">Phone Number 1</Label>
+                    <Input value={form.phone_number} onChange={e => set('phone_number', e.target.value)}
+                      placeholder="e.g. +60123456789" className="bg-slate-800 border-slate-700 text-white text-sm" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-slate-400 text-xs">Phone Number 2</Label>
+                    <Input value={form.phone_number_2} onChange={e => set('phone_number_2', e.target.value)}
+                      placeholder="e.g. +60198765432" className="bg-slate-800 border-slate-700 text-white text-sm" />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-slate-400 text-xs">Website</Label>
+                  <Input value={form.website} onChange={e => set('website', e.target.value)}
+                    placeholder="https://..." className="bg-slate-800 border-slate-700 text-white text-sm" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-slate-400 text-xs">Home / Residential Address</Label>
+                  <Input value={form.address} onChange={e => set('address', e.target.value)}
+                    placeholder="Street, city..." className="bg-slate-800 border-slate-700 text-white text-sm" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-slate-400 text-xs">Office Address</Label>
+                  <Input value={form.office_address} onChange={e => set('office_address', e.target.value)}
+                    placeholder="Office / business address..." className="bg-slate-800 border-slate-700 text-white text-sm" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-slate-400 text-xs">Business Details</Label>
+                  <Textarea value={form.business_details} onChange={e => set('business_details', e.target.value)}
+                    rows={2} placeholder="Business registration, type, activities..."
+                    className="bg-slate-800 border-slate-700 text-white text-sm resize-none" />
+                </div>
+              </div>
+            </div>
+
             {/* Intel fields */}
             <div className="border-t border-slate-700 pt-3">
               <p className="text-slate-500 text-[10px] uppercase tracking-wider mb-3">Intelligence / OSINT</p>
@@ -356,8 +432,6 @@ export function AccountsClient({ initialAccounts, accountTypes }: Props) {
                 {([
                   { field: 'workplace', statusField: 'workplace_status', label: 'Workplace' },
                   { field: 'company', statusField: 'company_status', label: 'Company' },
-                  { field: 'phone_number', statusField: 'phone_status', label: 'Phone Number' },
-                  { field: 'address', statusField: 'address_status', label: 'Address' },
                 ] as { field: keyof typeof form; statusField: keyof typeof form; label: string }[]).map(({ field, statusField, label }) => (
                   <div key={field} className="grid grid-cols-3 gap-2">
                     <div className="col-span-2 space-y-1.5">

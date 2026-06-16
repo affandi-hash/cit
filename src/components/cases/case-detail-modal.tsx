@@ -9,10 +9,13 @@ import { SeverityBadge } from './severity-badge'
 import { ScoreBar } from './score-bar'
 import { createClient } from '@/lib/supabase/client'
 import { format } from 'date-fns'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import {
   ExternalLink, Upload, Shield, FileText, Users, Activity,
   History, Loader2, User, Calendar, MessageCircle, Share2,
-  Smile, LayoutGrid, AlertTriangle, CheckCircle2
+  Smile, LayoutGrid, AlertTriangle, CheckCircle2, Save
 } from 'lucide-react'
 import type { Case, PostVersion, Evidence, Engagement } from '@/types'
 import { toast } from 'sonner'
@@ -62,6 +65,8 @@ export function CaseDetailModal({ caseId, open, onClose, onUpdate }: Props) {
   const [updatingStatus, setUpdatingStatus] = useState(false)
   const [caseScores, setCaseScores] = useState<Record<string, unknown> | null>(null)
   const [keywordMatches, setKeywordMatches] = useState<Record<string, unknown>[]>([])
+  const [accForm, setAccForm] = useState<Record<string, string>>({})
+  const [savingAcc, setSavingAcc] = useState(false)
 
   useEffect(() => {
     if (!open || !caseId) return
@@ -95,7 +100,52 @@ export function CaseDetailModal({ caseId, open, onClose, onUpdate }: Props) {
     setEngagement(eng as Engagement | null)
     setCaseScores(scores as Record<string, unknown> | null)
     setKeywordMatches((matches ?? []) as Record<string, unknown>[])
+    if (c?.accounts) {
+      const a = c.accounts as Record<string, unknown>
+      setAccForm({
+        name: (a.name as string) ?? '',
+        username: (a.username as string) ?? '',
+        ic_number: (a.ic_number as string) ?? '',
+        email_address: (a.email_address as string) ?? '',
+        phone_number: (a.phone_number as string) ?? '',
+        phone_number_2: (a.phone_number_2 as string) ?? '',
+        website: (a.website as string) ?? '',
+        address: (a.address as string) ?? '',
+        office_address: (a.office_address as string) ?? '',
+        business_details: (a.business_details as string) ?? '',
+        workplace: (a.workplace as string) ?? '',
+        company: (a.company as string) ?? '',
+        profile_url: (a.profile_url as string) ?? '',
+        notes: (a.notes as string) ?? '',
+      })
+    }
     setLoading(false)
+  }
+
+  async function saveAccount() {
+    const acc = caseData?.accounts as Record<string, unknown> | null
+    if (!acc?.id) return
+    setSavingAcc(true)
+    const { error } = await supabase.from('accounts').update({
+      name: accForm.name || null,
+      username: accForm.username || null,
+      ic_number: accForm.ic_number || null,
+      email_address: accForm.email_address || null,
+      phone_number: accForm.phone_number || null,
+      phone_number_2: accForm.phone_number_2 || null,
+      website: accForm.website || null,
+      address: accForm.address || null,
+      office_address: accForm.office_address || null,
+      business_details: accForm.business_details || null,
+      workplace: accForm.workplace || null,
+      company: accForm.company || null,
+      profile_url: accForm.profile_url || null,
+      notes: accForm.notes || null,
+    }).eq('id', acc.id as string)
+    setSavingAcc(false)
+    if (error) { toast.error(error.message); return }
+    toast.success('Account updated')
+    loadCase()
   }
 
   async function updateStatus(status: string) {
@@ -270,6 +320,17 @@ export function CaseDetailModal({ caseId, open, onClose, onUpdate }: Props) {
                     ))}
                   </div>
 
+                  {/* Source URL */}
+                  {c.url && (
+                    <div className="bg-slate-800/60 border border-slate-700/40 rounded-xl p-3">
+                      <p className="text-slate-500 text-[10px] uppercase tracking-wider mb-1">Source URL</p>
+                      <a href={c.url} target="_blank" rel="noopener noreferrer"
+                        className="text-blue-400 hover:text-blue-300 text-xs break-all underline underline-offset-2">
+                        {c.url}
+                      </a>
+                    </div>
+                  )}
+
                   {/* Summary */}
                   {c.ai_summary && (
                     <div className="bg-slate-800/60 border border-slate-700/40 rounded-xl p-4">
@@ -308,61 +369,120 @@ export function CaseDetailModal({ caseId, open, onClose, onUpdate }: Props) {
                 </TabsContent>
 
                 {/* Account */}
-                <TabsContent value="account" className="space-y-3 mt-0">
-                  {c.accounts ? (() => {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const acc = c.accounts as any
-                    return (
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-4 p-4 bg-slate-800/60 border border-slate-700/40 rounded-xl">
-                          <div className="w-12 h-12 bg-gradient-to-br from-slate-600 to-slate-700 rounded-full flex items-center justify-center text-white text-lg font-bold shrink-0">
-                            {(acc.name as string | null)?.charAt(0)?.toUpperCase() ?? '?'}
+                <TabsContent value="account" className="mt-0">
+                  {c.accounts ? (
+                    <div className="space-y-3">
+                      {/* Stats row */}
+                      {(() => {
+                        const acc = c.accounts as Record<string, unknown>
+                        return (
+                          <div className="grid grid-cols-3 gap-2">
+                            {[
+                              { label: 'Followers', value: (acc.followers as number | null)?.toLocaleString() ?? '—' },
+                              { label: 'Following', value: (acc.following as number | null)?.toLocaleString() ?? '—' },
+                              { label: 'Verified', value: acc.is_verified ? 'Yes' : 'No', highlight: acc.is_verified as boolean },
+                            ].map((s, i) => (
+                              <div key={i} className="bg-slate-800/60 border border-slate-700/40 rounded-xl p-3 text-center">
+                                <p className={cn('font-bold text-lg', s.highlight ? 'text-blue-400' : 'text-white')}>{s.value}</p>
+                                <p className="text-slate-500 text-xs">{s.label}</p>
+                              </div>
+                            ))}
                           </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-white font-semibold">{acc.name ?? 'Unknown'}</p>
-                            {acc.username && <p className="text-slate-400 text-sm">@{acc.username}</p>}
-                            {acc.account_types?.name && (
-                              <span className="inline-block mt-1 px-2 py-0.5 bg-slate-700 text-slate-300 text-xs rounded-full">{acc.account_types.name}</span>
-                            )}
-                          </div>
-                          {acc.profile_url && (
-                            <a href={acc.profile_url} target="_blank" rel="noopener noreferrer">
-                              <Button size="sm" variant="ghost" className="text-slate-400 hover:text-white shrink-0">
-                                <ExternalLink className="w-4 h-4" />
-                              </Button>
-                            </a>
-                          )}
-                        </div>
+                        )
+                      })()}
 
-                        <div className="grid grid-cols-3 gap-2">
-                          {[
-                            { label: 'Followers', value: acc.followers?.toLocaleString() ?? '—' },
-                            { label: 'Following', value: acc.following?.toLocaleString() ?? '—' },
-                            { label: 'Verified', value: acc.is_verified ? 'Yes' : 'No', highlight: acc.is_verified },
-                          ].map((s, i) => (
-                            <div key={i} className="bg-slate-800/60 border border-slate-700/40 rounded-xl p-3 text-center">
-                              <p className={cn('font-bold text-lg', s.highlight ? 'text-blue-400' : 'text-white')}>{s.value}</p>
-                              <p className="text-slate-500 text-xs">{s.label}</p>
-                            </div>
-                          ))}
-                        </div>
-
-                        {([
-                          { label: 'Workplace', value: acc.workplace, status: acc.workplace_status },
-                          { label: 'Company', value: acc.company, status: acc.company_status },
-                          { label: 'Phone', value: acc.phone_number, status: acc.phone_status },
-                        ] as { label: string; value: string | null; status: string }[]).filter(f => f.value).map((field, i) => (
-                          <div key={i} className="flex items-center justify-between bg-slate-800/60 border border-slate-700/40 rounded-xl p-3">
-                            <div>
-                              <p className="text-slate-500 text-xs">{field.label}</p>
-                              <p className="text-white text-sm">{field.value}</p>
-                            </div>
-                            <span className="text-xs px-2 py-0.5 bg-slate-700 text-slate-400 rounded-full">{field.status?.replace('_', ' ')}</span>
+                      {/* Editable fields */}
+                      <div className="bg-slate-800/40 border border-slate-700/40 rounded-xl p-4 space-y-3">
+                        <p className="text-slate-500 text-[10px] uppercase tracking-wider">Account Details</p>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <Label className="text-slate-500 text-[10px] uppercase">Name</Label>
+                            <Input value={accForm.name ?? ''} onChange={e => setAccForm(p => ({ ...p, name: e.target.value }))}
+                              className="bg-slate-800 border-slate-700 text-white text-sm h-8" />
                           </div>
-                        ))}
+                          <div className="space-y-1">
+                            <Label className="text-slate-500 text-[10px] uppercase">Username</Label>
+                            <Input value={accForm.username ?? ''} onChange={e => setAccForm(p => ({ ...p, username: e.target.value }))}
+                              placeholder="@handle" className="bg-slate-800 border-slate-700 text-white text-sm h-8" />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <Label className="text-slate-500 text-[10px] uppercase">IC / ID Number</Label>
+                            <Input value={accForm.ic_number ?? ''} onChange={e => setAccForm(p => ({ ...p, ic_number: e.target.value }))}
+                              placeholder="e.g. 901231-14-5678" className="bg-slate-800 border-slate-700 text-white text-sm h-8" />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-slate-500 text-[10px] uppercase">Email Address</Label>
+                            <Input value={accForm.email_address ?? ''} onChange={e => setAccForm(p => ({ ...p, email_address: e.target.value }))}
+                              placeholder="name@email.com" className="bg-slate-800 border-slate-700 text-white text-sm h-8" />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <Label className="text-slate-500 text-[10px] uppercase">Phone Number 1</Label>
+                            <Input value={accForm.phone_number ?? ''} onChange={e => setAccForm(p => ({ ...p, phone_number: e.target.value }))}
+                              placeholder="+60123456789" className="bg-slate-800 border-slate-700 text-white text-sm h-8" />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-slate-500 text-[10px] uppercase">Phone Number 2</Label>
+                            <Input value={accForm.phone_number_2 ?? ''} onChange={e => setAccForm(p => ({ ...p, phone_number_2: e.target.value }))}
+                              placeholder="+60198765432" className="bg-slate-800 border-slate-700 text-white text-sm h-8" />
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-slate-500 text-[10px] uppercase">Website</Label>
+                          <Input value={accForm.website ?? ''} onChange={e => setAccForm(p => ({ ...p, website: e.target.value }))}
+                            placeholder="https://..." className="bg-slate-800 border-slate-700 text-white text-sm h-8" />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-slate-500 text-[10px] uppercase">Profile URL</Label>
+                          <Input value={accForm.profile_url ?? ''} onChange={e => setAccForm(p => ({ ...p, profile_url: e.target.value }))}
+                            placeholder="https://facebook.com/..." className="bg-slate-800 border-slate-700 text-white text-sm h-8" />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-slate-500 text-[10px] uppercase">Home / Residential Address</Label>
+                          <Input value={accForm.address ?? ''} onChange={e => setAccForm(p => ({ ...p, address: e.target.value }))}
+                            placeholder="Street, city..." className="bg-slate-800 border-slate-700 text-white text-sm h-8" />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-slate-500 text-[10px] uppercase">Office Address</Label>
+                          <Input value={accForm.office_address ?? ''} onChange={e => setAccForm(p => ({ ...p, office_address: e.target.value }))}
+                            placeholder="Office / business address..." className="bg-slate-800 border-slate-700 text-white text-sm h-8" />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-slate-500 text-[10px] uppercase">Business Details</Label>
+                          <Textarea value={accForm.business_details ?? ''} onChange={e => setAccForm(p => ({ ...p, business_details: e.target.value }))}
+                            rows={2} placeholder="Business registration, type, activities..."
+                            className="bg-slate-800 border-slate-700 text-white text-sm resize-none" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <Label className="text-slate-500 text-[10px] uppercase">Workplace</Label>
+                            <Input value={accForm.workplace ?? ''} onChange={e => setAccForm(p => ({ ...p, workplace: e.target.value }))}
+                              className="bg-slate-800 border-slate-700 text-white text-sm h-8" />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-slate-500 text-[10px] uppercase">Company</Label>
+                            <Input value={accForm.company ?? ''} onChange={e => setAccForm(p => ({ ...p, company: e.target.value }))}
+                              className="bg-slate-800 border-slate-700 text-white text-sm h-8" />
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-slate-500 text-[10px] uppercase">Notes</Label>
+                          <Textarea value={accForm.notes ?? ''} onChange={e => setAccForm(p => ({ ...p, notes: e.target.value }))}
+                            rows={2} placeholder="Additional notes..."
+                            className="bg-slate-800 border-slate-700 text-white text-sm resize-none" />
+                        </div>
+                        <div className="flex justify-end pt-1">
+                          <Button onClick={saveAccount} disabled={savingAcc} size="sm" className="bg-teal-700 hover:bg-teal-600 text-white">
+                            {savingAcc ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Save className="w-3.5 h-3.5 mr-1.5" />}
+                            Save Account
+                          </Button>
+                        </div>
                       </div>
-                    )
-                  })() : (
+                    </div>
+                  ) : (
                     <div className="flex flex-col items-center justify-center py-16 text-slate-600">
                       <Users className="w-10 h-10 mb-3 opacity-30" />
                       <p className="text-sm">No account information linked</p>
