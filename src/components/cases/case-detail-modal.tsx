@@ -15,7 +15,7 @@ import { Textarea } from '@/components/ui/textarea'
 import {
   ExternalLink, Upload, Shield, FileText, Users, Activity,
   History, Loader2, User, Calendar, MessageCircle, Share2,
-  Smile, LayoutGrid, AlertTriangle, CheckCircle2, Save
+  Smile, LayoutGrid, AlertTriangle, CheckCircle2, Save, Download
 } from 'lucide-react'
 import type { Case, PostVersion, Evidence, Engagement } from '@/types'
 import { toast } from 'sonner'
@@ -226,6 +226,11 @@ export function CaseDetailModal({ caseId, open, onClose, onUpdate }: Props) {
                   <p className="text-slate-300 text-sm leading-relaxed line-clamp-2">{c.ai_summary ?? 'No summary'}</p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
+                  <a href={`/api/cases/report?id=${caseId}`} download>
+                    <Button size="sm" variant="outline" className="border-slate-600 text-slate-400 hover:text-white text-xs h-8">
+                      <Download className="w-3.5 h-3.5 mr-1" /> Report
+                    </Button>
+                  </a>
                   {c.url && (
                     <a href={c.url} target="_blank" rel="noopener noreferrer">
                       <Button size="sm" variant="outline" className="border-slate-600 text-slate-400 hover:text-white text-xs h-8">
