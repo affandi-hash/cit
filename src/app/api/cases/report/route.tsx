@@ -207,7 +207,7 @@ function CaseReport({ c, scores, evidence, keywords, logoSrc, generatedBy, gener
           <Field label="Source Type"    value={c.source_type?.replace(/_/g, ' ')} />
           <Field label="Date Found"     value={c.date_found ? new Date(c.date_found).toLocaleDateString('en-MY', { day: '2-digit', month: 'long', year: 'numeric' }) : null} />
           <Field label="Source URL"     value={c.url} />
-          <Field label="Investigator"   value={c.profiles?.full_name ?? c.profiles?.email} />
+          <Field label="Investigator"   value={c.profiles?.full_name ?? (c.profiles?.email ? maskEmail(c.profiles.email) : null)} />
         </View>
 
         {/* ── Section 2: Claim Details ── */}
@@ -368,6 +368,13 @@ function CaseReport({ c, scores, evidence, keywords, logoSrc, generatedBy, gener
   )
 }
 
+// ── Helpers ───────────────────────────────────────────────────────────
+function maskEmail(email: string) {
+  const [local, domain] = email.split('@')
+  if (!domain || local.length <= 2) return email
+  return `${local[0]}${'x'.repeat(local.length - 2)}${local[local.length - 1]}@${domain}`
+}
+
 // ── Route handler ─────────────────────────────────────────────────────
 export async function GET(req: NextRequest) {
   const supabase = await createClient()
@@ -405,11 +412,6 @@ export async function GET(req: NextRequest) {
     : ''
 
   const generatedAt = new Date().toLocaleString('en-MY', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-  function maskEmail(email: string) {
-    const [local, domain] = email.split('@')
-    if (!domain || local.length <= 2) return email
-    return `${local[0]}${'x'.repeat(local.length - 2)}${local[local.length - 1]}@${domain}`
-  }
   const rawBy = profile?.full_name ?? profile?.email ?? 'Unknown'
   const generatedBy = profile?.full_name ? rawBy : (profile?.email ? maskEmail(profile.email) : 'Unknown')
 
