@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { url, platform, notes, caseId, images, imageBase64, imageMediaType } = await req.json()
+  const { url, platform, notes, caseId, images, imageBase64, imageMediaType, focusSubject } = await req.json()
   // Support both old single-image format and new multi-image array
   const imageList: { data: string; mediaType: string }[] = images ??
     (imageBase64 ? [{ data: imageBase64, mediaType: imageMediaType ?? 'image/jpeg' }] : [])
@@ -75,6 +75,10 @@ Always assess: Is this post damaging the reputation of a monitored entity? Score
     .replace('{{platform}}', platform ?? 'Unknown')
     .replace('{{notes}}', notes ?? 'None')
 
+  const focusInstruction = focusSubject
+    ? `\n\n⚠️ FOCUS SUBJECT OVERRIDE: This case is NOT about the main post author. The investigator wants to focus specifically on: "${focusSubject}"\n\nYour entire analysis must centre on what "${focusSubject}" said in the comments or elsewhere in the screenshot:\n- Find their comment(s) and treat that text as THE CLAIM being investigated\n- Write the summary about what "${focusSubject}" said/alleged — not the main poster\n- Set post_owner_name to "${focusSubject}" (the focus subject), not the main post author\n- Extract account_username, account_followers, account_is_verified for "${focusSubject}" if visible\n- Score severity, seriousness, and reputation impact based on THEIR statement\n- extracted_text must include their comment verbatim`
+    : ''
+
   const imageInstruction = imageList.length > 0
     ? `\n\n${imageList.length > 1 ? `${imageList.length} screenshots have been provided. They may show different parts of the same case — e.g. the post on one image, the account profile on another, comments on another. Treat them as a combined evidence set and extract all available information across ALL images.` : 'A screenshot of the post has been provided.'}
 
@@ -93,8 +97,8 @@ Extract these fields by combining information from ALL screenshots:
 - account_profile_url: the full profile URL if visible in any screenshot, or null
 - account_followers: follower/friend count if shown in any profile screenshot, or null
 - account_is_verified: true if there is a blue verified tick next to the author's name in any screenshot, otherwise false
-If any value cannot be read across all images, return null or 0.`
-    : ''
+If any value cannot be read across all images, return null or 0.${focusInstruction}`
+    : focusInstruction
 
   const fullPrompt = `${userPrompt}${imageInstruction}
 

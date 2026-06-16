@@ -320,6 +320,18 @@ export function CaseDetailModal({ caseId, open, onClose, onUpdate }: Props) {
                     ))}
                   </div>
 
+                  {/* Focus Subject */}
+                  {c.focus_subject && (
+                    <div className="flex items-center gap-3 bg-yellow-500/10 border border-yellow-500/25 rounded-xl p-3">
+                      <div className="w-2 h-2 rounded-full bg-yellow-400 shrink-0" />
+                      <div>
+                        <p className="text-yellow-400 text-[10px] uppercase tracking-wider font-semibold">Focus Subject</p>
+                        <p className="text-white text-sm font-medium">{c.focus_subject as string}</p>
+                        <p className="text-slate-500 text-[11px] mt-0.5">AI analysis was directed at this person&apos;s comment</p>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Source URL */}
                   {c.url && (
                     <div className="bg-slate-800/60 border border-slate-700/40 rounded-xl p-3">
