@@ -405,7 +405,13 @@ export async function GET(req: NextRequest) {
     : ''
 
   const generatedAt = new Date().toLocaleString('en-MY', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-  const generatedBy = profile?.full_name ?? profile?.email ?? 'Unknown'
+  function maskEmail(email: string) {
+    const [local, domain] = email.split('@')
+    if (!domain || local.length <= 2) return email
+    return `${local[0]}${'x'.repeat(local.length - 2)}${local[local.length - 1]}@${domain}`
+  }
+  const rawBy = profile?.full_name ?? profile?.email ?? 'Unknown'
+  const generatedBy = profile?.full_name ? rawBy : (profile?.email ? maskEmail(profile.email) : 'Unknown')
 
   const pdfBuffer = await renderToBuffer(
     <CaseReport
