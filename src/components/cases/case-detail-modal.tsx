@@ -495,9 +495,26 @@ export function CaseDetailModal({ caseId, open, onClose, onUpdate }: Props) {
                       </div>
                     </div>
                   ) : (
-                    <div className="flex flex-col items-center justify-center py-16 text-slate-600">
-                      <Users className="w-10 h-10 mb-3 opacity-30" />
+                    <div className="flex flex-col items-center justify-center py-16 text-slate-600 gap-4">
+                      <Users className="w-10 h-10 opacity-30" />
                       <p className="text-sm">No account information linked</p>
+                      {c.post_owner_name && (
+                        <Button
+                          size="sm"
+                          className="bg-teal-700 hover:bg-teal-600 text-white"
+                          onClick={async () => {
+                            const { data: newAcc } = await supabase.from('accounts').insert({
+                              name: c.post_owner_name as string,
+                            }).select('id').single()
+                            if (!newAcc) { toast.error('Failed to create account'); return }
+                            await supabase.from('cases').update({ account_id: newAcc.id }).eq('id', caseId)
+                            toast.success(`Account created for ${c.post_owner_name as string}`)
+                            loadCase()
+                          }}
+                        >
+                          Create &amp; Link Account for &quot;{c.post_owner_name as string}&quot;
+                        </Button>
+                      )}
                     </div>
                   )}
                 </TabsContent>
