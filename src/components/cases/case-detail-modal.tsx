@@ -15,7 +15,7 @@ import { Textarea } from '@/components/ui/textarea'
 import {
   ExternalLink, Upload, Shield, FileText, Users, Activity,
   History, Loader2, User, Calendar, MessageCircle, Share2,
-  Smile, LayoutGrid, AlertTriangle, CheckCircle2, Save, Download
+  Smile, LayoutGrid, AlertTriangle, CheckCircle2, Save, Download, Trash2
 } from 'lucide-react'
 import type { Case, PostVersion, Evidence, Engagement } from '@/types'
 import { toast } from 'sonner'
@@ -67,6 +67,7 @@ export function CaseDetailModal({ caseId, open, onClose, onUpdate }: Props) {
   const [keywordMatches, setKeywordMatches] = useState<Record<string, unknown>[]>([])
   const [accForm, setAccForm] = useState<Record<string, string>>({})
   const [savingAcc, setSavingAcc] = useState(false)
+  const [deletingEvidence, setDeletingEvidence] = useState<string | null>(null)
 
   useEffect(() => {
     if (!open || !caseId) return
@@ -120,6 +121,20 @@ export function CaseDetailModal({ caseId, open, onClose, onUpdate }: Props) {
       })
     }
     setLoading(false)
+  }
+
+  async function deleteEvidence(ev: Evidence) {
+    setDeletingEvidence(ev.id)
+    const fileUrl = (ev as unknown as Record<string, string>).file_url
+    // Extract storage path from public URL
+    const storageMatch = fileUrl?.match(/\/evidence\/(.+)$/)
+    if (storageMatch) {
+      await supabase.storage.from('evidence').remove([decodeURIComponent(storageMatch[1])])
+    }
+    await supabase.from('evidence').delete().eq('id', ev.id)
+    setDeletingEvidence(null)
+    setEvidenceList(prev => prev.filter(e => e.id !== ev.id))
+    toast.success('Evidence deleted')
   }
 
   async function saveAccount() {
@@ -670,7 +685,7 @@ export function CaseDetailModal({ caseId, open, onClose, onUpdate }: Props) {
                   ) : (
                     <div className="grid grid-cols-2 gap-3">
                       {evidenceList.map(ev => (
-                        <div key={ev.id} className="bg-slate-800/60 border border-slate-700/40 rounded-xl p-3">
+                        <div key={ev.id} className="bg-slate-800/60 border border-slate-700/40 rounded-xl p-3 relative group">
                           {ev.evidence_type === 'screenshot' ? (
                             <img src={(ev as unknown as Record<string, string>).file_url} alt={ev.file_name}
                               className="w-full h-32 object-cover rounded-lg mb-2 bg-slate-700" />
@@ -682,9 +697,25 @@ export function CaseDetailModal({ caseId, open, onClose, onUpdate }: Props) {
                           <p className="text-white text-xs font-medium truncate">{ev.file_name}</p>
                           <div className="flex items-center justify-between mt-1">
                             <span className="text-slate-500 text-xs">{ev.evidence_type}</span>
-                            <a href={(ev as unknown as Record<string, string>).file_url} target="_blank" rel="noopener noreferrer">
-                              <ExternalLink className="w-3.5 h-3.5 text-slate-500 hover:text-white" />
-                            </a>
+                            <div className="flex items-center gap-2">
+                              <a href={(ev as unknown as Record<string, string>).file_url} target="_blank" rel="noopener noreferrer">
+                                <ExternalLink className="w-3.5 h-3.5 text-slate-500 hover:text-white" />
+                              </a>
+                              <button
+                                onClick={() => {
+                                  if (confirm(`Delete "${ev.file_name}"? This cannot be undone.`)) {
+                                    deleteEvidence(ev)
+                                  }
+                                }}
+                                disabled={deletingEvidence === ev.id}
+                                className="text-slate-500 hover:text-red-400 disabled:opacity-50 transition-colors"
+                              >
+                                {deletingEvidence === ev.id
+                                  ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                  : <Trash2 className="w-3.5 h-3.5" />
+                                }
+                              </button>
+                            </div>
                           </div>
                         </div>
                       ))}
