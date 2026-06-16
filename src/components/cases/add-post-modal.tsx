@@ -116,6 +116,7 @@ export function AddPostModal({ open, onClose, platforms, topics, onSuccess }: Ad
     initial_notes: '',
     screenshots: [] as File[],
     focus_subject: '',
+    focus_comment: '',
   })
   const [accDetails, setAccDetails] = useState({
     ic_number: '', email_address: '', phone_number: '', phone_number_2: '',
@@ -123,7 +124,7 @@ export function AddPostModal({ open, onClose, platforms, topics, onSuccess }: Ad
   })
 
   function reset() {
-    setForm({ platform_id: '', account_id: '', url: '', source_type: 'post_owner', initial_notes: '', screenshots: [], focus_subject: '' })
+    setForm({ platform_id: '', account_id: '', url: '', source_type: 'post_owner', initial_notes: '', screenshots: [], focus_subject: '', focus_comment: '' })
     setAccDetails({ ic_number: '', email_address: '', phone_number: '', phone_number_2: '', website: '', address: '', office_address: '', business_details: '' })
     setAiResult(null)
     setConfirmed(false)
@@ -174,7 +175,7 @@ export function AddPostModal({ open, onClose, platforms, topics, onSuccess }: Ad
       const res = await fetch('/api/evaluate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: form.url, platform: platform?.name, notes: form.initial_notes, images, focusSubject: form.focus_subject || null }),
+        body: JSON.stringify({ url: form.url, platform: platform?.name, notes: form.initial_notes, images, focusSubject: form.focus_subject || null, focusComment: form.focus_comment || null }),
       })
       const data = await res.json()
       if (data.error) throw new Error(data.error)
@@ -274,6 +275,7 @@ export function AddPostModal({ open, onClose, platforms, topics, onSuccess }: Ad
         post_comments: aiResult?.post_comments ?? 0,
         post_shares: aiResult?.post_shares ?? 0,
         focus_subject: form.focus_subject || null,
+        focus_comment: form.focus_comment || null,
       }).select().single()
 
       if (error) throw error
@@ -447,20 +449,34 @@ export function AddPostModal({ open, onClose, platforms, topics, onSuccess }: Ad
             </div>
 
             {/* Focus Subject */}
-            <div className="rounded-xl p-4 space-y-2" style={{ background: 'rgba(251,191,36,0.06)', border: '1px solid rgba(251,191,36,0.2)' }}>
-              <div className="flex items-center gap-2 mb-1">
+            <div className="rounded-xl p-4 space-y-3" style={{ background: 'rgba(251,191,36,0.06)', border: '1px solid rgba(251,191,36,0.2)' }}>
+              <div className="flex items-center gap-2">
                 <span className="text-[10px] uppercase tracking-wider font-semibold" style={{ color: '#FCD34D' }}>Focus Subject</span>
-                <span className="text-[10px]" style={{ color: '#64748B' }}>(optional)</span>
+                <span className="text-[10px]" style={{ color: '#64748B' }}>(optional — for commenter cases)</span>
               </div>
-              <input
-                value={form.focus_subject}
-                onChange={e => setForm(f => ({ ...f, focus_subject: e.target.value }))}
-                placeholder="e.g. Nurul Izzaty or @nurulainieyasin"
-                className="w-full h-9 px-3 rounded-lg text-sm text-white bg-transparent placeholder:text-slate-600 focus:outline-none"
-                style={{ border: '1px solid rgba(251,191,36,0.3)' }}
-              />
+              <div className="space-y-1">
+                <label className="text-[10px] uppercase tracking-wide" style={{ color: '#94A3B8' }}>Name / Handle</label>
+                <input
+                  value={form.focus_subject}
+                  onChange={e => setForm(f => ({ ...f, focus_subject: e.target.value }))}
+                  placeholder="e.g. Nurul Izzaty or @nurulainieyasin"
+                  className="w-full h-9 px-3 rounded-lg text-sm text-white bg-transparent placeholder:text-slate-600 focus:outline-none"
+                  style={{ border: '1px solid rgba(251,191,36,0.3)' }}
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] uppercase tracking-wide" style={{ color: '#94A3B8' }}>Paste their comment <span style={{ color: '#64748B' }}>(optional but recommended)</span></label>
+                <textarea
+                  value={form.focus_comment}
+                  onChange={e => setForm(f => ({ ...f, focus_comment: e.target.value }))}
+                  rows={3}
+                  placeholder="Copy and paste the exact comment text here so the AI has no ambiguity about which comment to analyze..."
+                  className="w-full px-3 py-2 rounded-lg text-sm text-white bg-transparent placeholder:text-slate-600 focus:outline-none resize-none"
+                  style={{ border: '1px solid rgba(251,191,36,0.3)' }}
+                />
+              </div>
               <p className="text-[11px] leading-relaxed" style={{ color: '#64748B' }}>
-                Fill this if the case is about a specific commenter, not the main post author. The AI will focus its analysis and claim summary on what this person said.
+                If the screenshot has many comments, pasting the exact text ensures the AI analyses the right one.
               </p>
             </div>
 

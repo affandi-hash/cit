@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { url, platform, notes, caseId, images, imageBase64, imageMediaType, focusSubject } = await req.json()
+  const { url, platform, notes, caseId, images, imageBase64, imageMediaType, focusSubject, focusComment } = await req.json()
   // Support both old single-image format and new multi-image array
   const imageList: { data: string; mediaType: string }[] = images ??
     (imageBase64 ? [{ data: imageBase64, mediaType: imageMediaType ?? 'image/jpeg' }] : [])
@@ -76,7 +76,11 @@ Always assess: Is this post damaging the reputation of a monitored entity? Score
     .replace('{{notes}}', notes ?? 'None')
 
   const focusInstruction = focusSubject
-    ? `\n\n⚠️ FOCUS SUBJECT OVERRIDE: This case is NOT about the main post author. The investigator wants to focus specifically on: "${focusSubject}"\n\nYour entire analysis must centre on what "${focusSubject}" said in the comments or elsewhere in the screenshot:\n- Find their comment(s) and treat that text as THE CLAIM being investigated\n- Write the summary about what "${focusSubject}" said/alleged — not the main poster\n- Set post_owner_name to "${focusSubject}" (the focus subject), not the main post author\n- Extract account_username, account_followers, account_is_verified for "${focusSubject}" if visible\n- Score severity, seriousness, and reputation impact based on THEIR statement\n- extracted_text must include their comment verbatim`
+    ? focusComment
+      // Definitive: investigator pasted the exact comment — use it directly, no ambiguity
+      ? `\n\n⚠️ FOCUS SUBJECT — EXACT COMMENT PROVIDED ⚠️\nThis case is ONLY about the following comment made by "${focusSubject}". IGNORE the main post and all other comments entirely.\n\nTHEIR EXACT COMMENT:\n"${focusComment}"\n\nTreat the above text as the sole claim to evaluate:\n- summary: summarise what "${focusSubject}" alleged in that comment\n- post_owner_name: "${focusSubject}"\n- Score severity, claim seriousness, and reputation impact based ONLY on that comment\n- extracted_text: include the comment text verbatim plus any visible account info for "${focusSubject}"\n- account_username / account_followers / account_is_verified: extract for "${focusSubject}" from the screenshot if visible, otherwise null/false\n- Do NOT reference or score any other comment, including longer or more prominent ones`
+      // Name only: stronger exclusion prompt
+      : `\n\n⚠️ FOCUS SUBJECT OVERRIDE ⚠️\nThis case is NOT about the main post author or any other commenter. Focus EXCLUSIVELY on: "${focusSubject}"\n\nRules:\n- Find ONLY "${focusSubject}"'s comment(s) in the screenshot — ignore every other comment no matter how prominent\n- Treat their comment as the ONLY claim to evaluate\n- summary must describe what "${focusSubject}" said — not Iskandar Starc, not the main poster, not anyone else\n- post_owner_name: "${focusSubject}"\n- Score based solely on their statement\n- If their comment is short, that IS the full claim — do not supplement with other content\n- extracted_text: include their comment verbatim`
     : ''
 
   const imageInstruction = imageList.length > 0
