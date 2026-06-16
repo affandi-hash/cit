@@ -60,7 +60,7 @@ const S = StyleSheet.create({
     borderBottomColor: RED,
     backgroundColor: WHITE,
   },
-  logo: { width: 130, height: 44, objectFit: 'contain' },
+  logo: { width: 325, height: 110, objectFit: 'contain' },
   headerRight: { alignItems: 'flex-end' },
   reportTitle: { fontSize: 13, fontFamily: 'Helvetica-Bold', color: DARK },
   caseId: { fontSize: 10, color: RED, fontFamily: 'Helvetica-Bold', marginTop: 2 },
