@@ -399,7 +399,7 @@ export async function GET(req: NextRequest) {
   if (!c) return NextResponse.json({ error: 'Case not found' }, { status: 404 })
 
   // Load logo as base64
-  const logoPath = path.join(process.cwd(), 'public', 'ChatGPT Image Jun 16, 2026, 01_26_20 PM.png')
+  const logoPath = path.join(process.cwd(), 'public', 'cit-logo.png')
   const logoBase64 = fs.existsSync(logoPath)
     ? `data:image/png;base64,${fs.readFileSync(logoPath).toString('base64')}`
     : ''
