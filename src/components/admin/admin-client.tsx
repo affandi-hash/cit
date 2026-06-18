@@ -423,12 +423,12 @@ export function AdminClient({
               <p className="text-slate-500 text-xs leading-relaxed">
                 Open any keyword group, expand it, and click the <span className="inline-flex items-center gap-1 text-teal-400 mx-0.5"><Radar className="w-3 h-3" /></span> radar icon next to any keyword to enable it for Lead Discovery search. Enabled keywords appear highlighted in teal.
               </p>
-              <button
-                onClick={() => router.push('/admin?tab=keywords')}
+              <a
+                href="/admin?tab=keywords"
                 className="self-start text-xs text-teal-400 hover:text-teal-300 underline underline-offset-2"
               >
                 Go to Keyword Library →
-              </button>
+              </a>
             </div>
           </div>
         </TabsContent>
