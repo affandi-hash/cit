@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -43,6 +43,8 @@ export function AdminClient({
 }: AdminClientProps) {
   const supabase = createClient()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const defaultTab = searchParams.get('tab') ?? 'platforms'
 
   const [platforms, setPlatforms] = useState(initialPlatforms)
   const [topics, setTopics] = useState(initialTopics)
@@ -115,7 +117,7 @@ export function AdminClient({
         <p className="text-slate-500 text-sm mt-0.5">Configure all platform settings. Nothing is hardcoded.</p>
       </div>
 
-      <Tabs defaultValue="platforms">
+      <Tabs defaultValue={defaultTab}>
         <TabsList className="bg-slate-800 border border-slate-700 flex-wrap h-auto gap-1 p-1 mb-6">
           {[
             { value: 'platforms', label: 'Platforms', icon: Globe },

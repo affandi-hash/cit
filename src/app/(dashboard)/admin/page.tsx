@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { Suspense } from 'react'
 import { AdminClient } from '@/components/admin/admin-client'
 
 export default async function AdminPage() {
@@ -36,6 +37,7 @@ export default async function AdminPage() {
   ])
 
   return (
+    <Suspense>
     <AdminClient
       platforms={platforms ?? []}
       topics={topics ?? []}
@@ -49,5 +51,6 @@ export default async function AdminPage() {
       keywords={keywords ?? []}
       leadEntities={leadEntities ?? []}
     />
+    </Suspense>
   )
 }
