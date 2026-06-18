@@ -315,16 +315,21 @@ export function KeywordLibrary({ initialGroups, initialKeywords }: Props) {
                         )}
                         <span className="text-slate-500 text-xs tabular-nums w-8 text-right">{kw.severity_score}</span>
                         <span className="text-slate-600 text-xs w-14 text-right">{kw.reputation_impact}</span>
-                        <button
-                          onClick={() => toggleLeadSearch(kw.id, kw.use_in_lead_search)}
-                          title={kw.use_in_lead_search ? 'Used in Lead Discovery (click to remove)' : 'Add to Lead Discovery search'}
-                          className={cn('p-1 rounded transition-colors', kw.use_in_lead_search ? 'text-teal-400 bg-teal-500/15' : 'text-slate-600 hover:text-teal-400')}
-                        >
-                          <Radar className="w-3 h-3" />
-                        </button>
                         <button onClick={() => toggleKeyword(kw.id, kw.is_active)}
                           className={cn('text-xs px-2 py-0.5 rounded transition-colors', kw.is_active ? 'bg-green-500/15 text-green-400' : 'bg-slate-700/40 text-slate-600')}>
                           {kw.is_active ? 'Active' : 'Off'}
+                        </button>
+                        <button
+                          onClick={() => toggleLeadSearch(kw.id, kw.use_in_lead_search)}
+                          title={kw.use_in_lead_search ? 'In Lead Discovery — click to remove' : 'Enable for Lead Discovery search'}
+                          className={cn('flex items-center gap-1 text-xs px-2 py-0.5 rounded border transition-colors',
+                            kw.use_in_lead_search
+                              ? 'bg-teal-500/15 text-teal-400 border-teal-500/30'
+                              : 'bg-slate-700/20 text-slate-600 border-slate-700/40 hover:text-teal-400 hover:border-teal-500/30'
+                          )}
+                        >
+                          <Radar className="w-3 h-3" />
+                          {kw.use_in_lead_search ? 'Lead' : 'Lead'}
                         </button>
                         <button onClick={() => deleteKeyword(kw.id)} className="text-slate-600 hover:text-red-400 p-1 transition-colors">
                           <Trash2 className="w-3 h-3" />
