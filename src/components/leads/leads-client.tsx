@@ -9,7 +9,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { LeadDetailModal } from './lead-detail-modal'
-import type { Lead, LeadEntity, LeadKeyword, LeadBatch } from '@/types'
+import type { Lead, LeadEntity, LeadBatch } from '@/types'
 import { format } from 'date-fns'
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
@@ -32,7 +32,7 @@ const PRIORITY_CONFIG = {
 interface Props {
   initialLeads: Lead[]
   entities: LeadEntity[]
-  keywords: LeadKeyword[]
+  keywords: { keyword: string }[]
   batches: LeadBatch[]
 }
 
