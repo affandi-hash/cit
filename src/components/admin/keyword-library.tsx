@@ -311,7 +311,7 @@ export function KeywordLibrary({ initialGroups, initialKeywords }: Props) {
                           className={cn('flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded border transition-colors shrink-0',
                             kw.use_in_lead_search
                               ? 'bg-teal-500/15 text-teal-400 border-teal-500/30'
-                              : 'bg-slate-700/20 text-slate-600 border-slate-700/40 hover:text-teal-400 hover:border-teal-500/30'
+                              : 'bg-slate-800 text-slate-400 border-slate-600 hover:text-teal-400 hover:border-teal-500/50'
                           )}
                         >
                           <Radar className="w-2.5 h-2.5" />
