@@ -10,7 +10,7 @@ import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { createClient } from '@/lib/supabase/client'
-import { Plus, Trash2, Save, Settings, Tag, Globe, Shield, Users, Sparkles, BarChart3, Edit3 } from 'lucide-react'
+import { Plus, Trash2, Save, Settings, Tag, Globe, Shield, Users, Sparkles, BarChart3, Edit3, Radar } from 'lucide-react'
 import { toast } from 'sonner'
 import { KeywordLibrary } from './keyword-library'
 
@@ -25,6 +25,8 @@ interface AdminClientProps {
   currentUserRole: 'super_admin' | 'admin'
   keywordGroups: Record<string, unknown>[]
   keywords: Record<string, unknown>[]
+  leadEntities: Record<string, unknown>[]
+  leadKeywords: Record<string, unknown>[]
 }
 
 export function AdminClient({
@@ -38,6 +40,8 @@ export function AdminClient({
   currentUserRole,
   keywordGroups,
   keywords,
+  leadEntities: initialLeadEntities,
+  leadKeywords: initialLeadKeywords,
 }: AdminClientProps) {
   const supabase = createClient()
   const router = useRouter()
@@ -48,6 +52,12 @@ export function AdminClient({
   const [formulas, setFormulas] = useState(initialFormulas)
   const [aiPrompts, setAiPrompts] = useState(initialPrompts)
   const [users, setUsers] = useState(initialUsers)
+
+  const [leadEntities, setLeadEntities] = useState(initialLeadEntities)
+  const [leadKeywords, setLeadKeywords] = useState(initialLeadKeywords)
+  const [newLeadEntity, setNewLeadEntity] = useState('')
+  const [newLeadKeyword, setNewLeadKeyword] = useState('')
+  const [newLeadKeywordCategory, setNewLeadKeywordCategory] = useState('')
 
   const [newPlatform, setNewPlatform] = useState('')
   const [newTopic, setNewTopic] = useState('')
@@ -120,6 +130,7 @@ export function AdminClient({
             { value: 'scoring', label: 'Scoring', icon: BarChart3 },
             { value: 'ai-prompts', label: 'AI Prompts', icon: Sparkles },
             { value: 'users', label: 'Users', icon: Users },
+            { value: 'lead-discovery', label: 'Lead Discovery', icon: Radar },
           ].map(tab => (
             <TabsTrigger key={tab.value} value={tab.value}
               className="text-slate-400 data-[state=active]:text-white data-[state=active]:bg-slate-700 text-xs px-3 py-1.5">
@@ -349,6 +360,111 @@ export function AdminClient({
                 ))}
               </tbody>
             </table>
+          </div>
+        </TabsContent>
+
+        {/* LEAD DISCOVERY */}
+        <TabsContent value="lead-discovery">
+          <div className="grid grid-cols-2 gap-6">
+            {/* Entities */}
+            <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-5">
+              <h3 className="text-white font-semibold text-sm mb-1">Search Entities</h3>
+              <p className="text-slate-500 text-xs mb-4">People, brands, or schemes to monitor.</p>
+              <div className="flex items-center gap-2 mb-4">
+                <Input
+                  placeholder="Entity name…"
+                  value={newLeadEntity}
+                  onChange={e => setNewLeadEntity(e.target.value)}
+                  className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 text-sm"
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && newLeadEntity) {
+                      addItem('lead_entities', { name: newLeadEntity, sort_order: leadEntities.length + 1 }, setLeadEntities)
+                      setNewLeadEntity('')
+                    }
+                  }}
+                />
+                <Button
+                  onClick={() => {
+                    if (newLeadEntity) {
+                      addItem('lead_entities', { name: newLeadEntity, sort_order: leadEntities.length + 1 }, setLeadEntities)
+                      setNewLeadEntity('')
+                    }
+                  }}
+                  className="bg-teal-700 hover:bg-teal-600 shrink-0"
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
+              <div className="space-y-2">
+                {leadEntities.map(e => (
+                  <div key={e.id as string} className="flex items-center justify-between p-3 bg-slate-800 rounded-lg">
+                    <span className={`text-sm ${e.is_active ? 'text-white' : 'text-slate-500 line-through'}`}>{e.name as string}</span>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={e.is_active as boolean}
+                        onCheckedChange={() => toggleActive('lead_entities', e.id as string, e.is_active as boolean, leadEntities, setLeadEntities)}
+                      />
+                      <button onClick={() => deleteItem('lead_entities', e.id as string, setLeadEntities)}
+                        className="text-slate-600 hover:text-red-400 p-1">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Keywords */}
+            <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-5">
+              <h3 className="text-white font-semibold text-sm mb-1">Allegation Keywords</h3>
+              <p className="text-slate-500 text-xs mb-4">Keywords used to build search queries.</p>
+              <div className="flex items-center gap-2 mb-2">
+                <Input
+                  placeholder="Keyword…"
+                  value={newLeadKeyword}
+                  onChange={e => setNewLeadKeyword(e.target.value)}
+                  className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 text-sm"
+                />
+                <Input
+                  placeholder="Category (optional)"
+                  value={newLeadKeywordCategory}
+                  onChange={e => setNewLeadKeywordCategory(e.target.value)}
+                  className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 text-sm"
+                />
+                <Button
+                  onClick={() => {
+                    if (newLeadKeyword) {
+                      addItem('lead_keywords', { keyword: newLeadKeyword, category: newLeadKeywordCategory || null, sort_order: leadKeywords.length + 1 }, setLeadKeywords)
+                      setNewLeadKeyword('')
+                      setNewLeadKeywordCategory('')
+                    }
+                  }}
+                  className="bg-teal-700 hover:bg-teal-600 shrink-0"
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
+              <div className="space-y-2 mt-4">
+                {leadKeywords.map(k => (
+                  <div key={k.id as string} className="flex items-center justify-between p-3 bg-slate-800 rounded-lg">
+                    <div>
+                      <span className={`text-sm ${k.is_active ? 'text-white' : 'text-slate-500 line-through'}`}>{k.keyword as string}</span>
+                      {k.category && <span className="ml-2 text-xs text-slate-500">{k.category as string}</span>}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={k.is_active as boolean}
+                        onCheckedChange={() => toggleActive('lead_keywords', k.id as string, k.is_active as boolean, leadKeywords, setLeadKeywords)}
+                      />
+                      <button onClick={() => deleteItem('lead_keywords', k.id as string, setLeadKeywords)}
+                        className="text-slate-600 hover:text-red-400 p-1">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </TabsContent>
       </Tabs>

@@ -21,6 +21,8 @@ export default async function AdminPage() {
     { data: users },
     { data: keywordGroups },
     { data: keywords },
+    { data: leadEntities },
+    { data: leadKeywords },
   ] = await Promise.all([
     supabase.from('platforms').select('*').order('sort_order'),
     supabase.from('topics').select('*').order('sort_order'),
@@ -31,6 +33,8 @@ export default async function AdminPage() {
     supabase.from('profiles').select('*').order('created_at'),
     supabase.from('keyword_groups').select('*').order('sort_order'),
     supabase.from('keywords').select('*').order('keyword'),
+    supabase.from('lead_entities').select('*').order('sort_order'),
+    supabase.from('lead_keywords').select('*').order('sort_order'),
   ])
 
   return (
@@ -45,6 +49,8 @@ export default async function AdminPage() {
       currentUserRole={profile.role as 'super_admin' | 'admin'}
       keywordGroups={keywordGroups ?? []}
       keywords={keywords ?? []}
+      leadEntities={leadEntities ?? []}
+      leadKeywords={leadKeywords ?? []}
     />
   )
 }

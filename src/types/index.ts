@@ -222,6 +222,72 @@ export interface AIPrompt {
   updated_at: string
 }
 
+export type LeadStatus =
+  | 'new'
+  | 'opened'
+  | 'useful'
+  | 'not_relevant'
+  | 'duplicate'
+  | 'saved_to_case'
+  | 'needs_screenshot'
+  | 'legal_review'
+
+export type LeadPriority = 'high' | 'medium' | 'low'
+
+export interface LeadEntity {
+  id: string
+  name: string
+  aliases: string[]
+  description: string | null
+  is_active: boolean
+  sort_order: number
+  created_at: string
+}
+
+export interface LeadKeyword {
+  id: string
+  keyword: string
+  category: string | null
+  is_active: boolean
+  sort_order: number
+  created_at: string
+}
+
+export interface LeadBatch {
+  id: string
+  run_by_id: string | null
+  query_count: number
+  lead_count: number
+  status: string
+  queries_used: string[]
+  created_at: string
+}
+
+export interface Lead {
+  id: string
+  lead_number: string
+  batch_id: string | null
+  platform: string | null
+  url: string | null
+  author: string | null
+  title: string | null
+  snippet: string | null
+  matched_entity: string | null
+  matched_keyword: string | null
+  narrative: string | null
+  ai_priority: LeadPriority
+  ai_notes: string | null
+  date_found: string
+  published_date: string | null
+  status: LeadStatus
+  duplicate_of_id: string | null
+  converted_case_id: string | null
+  reviewed_by_id: string | null
+  reviewed_at: string | null
+  created_at: string
+  updated_at: string
+}
+
 export interface DashboardStats {
   total_cases: number
   total_posts: number

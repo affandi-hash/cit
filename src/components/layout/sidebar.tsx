@@ -8,7 +8,7 @@ import {
   Shield, LayoutDashboard, FolderOpen, Settings, Users,
   ChevronLeft, ChevronRight, LogOut, BookOpen,
   TrendingUp, Database, Plus,
-  Calendar, CheckSquare, Radio, Key, Bell, AlertCircle
+  Calendar, CheckSquare, Radio, Key, Bell, AlertCircle, Radar
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -16,6 +16,7 @@ import type { UserRole } from '@/types'
 
 const NAV_ITEMS = [
   { href: '/',           label: 'Dashboard',     icon: LayoutDashboard, roles: ['super_admin','admin','investigator','viewer'] },
+  { href: '/leads',      label: 'Lead Discovery', icon: Radar,           roles: ['super_admin','admin','investigator'] },
   { href: '/cases',      label: 'Cases',          icon: FolderOpen,      roles: ['super_admin','admin','investigator','viewer'] },
   { href: '/narratives', label: 'Narratives',     icon: TrendingUp,      roles: ['super_admin','admin','investigator','viewer'] },
   { href: '/admin',      label: 'Keywords',       icon: Key,             roles: ['super_admin','admin'] },
