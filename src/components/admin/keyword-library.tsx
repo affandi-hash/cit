@@ -305,6 +305,18 @@ export function KeywordLibrary({ initialGroups, initialKeywords }: Props) {
                       <div key={kw.id} className={cn('flex items-center gap-2 px-4 py-2.5 hover:bg-slate-800/20 transition-colors', !kw.is_active && 'opacity-40')}>
                         <div className={cn('w-2 h-2 rounded-full shrink-0', COLOR_DOT[kw.color_tag] ?? 'bg-slate-500')} />
                         <span className={cn('text-sm flex-1 font-mono', COLOR_TEXT[kw.color_tag] ?? 'text-slate-300')}>{kw.keyword}</span>
+                        <button
+                          onClick={() => toggleLeadSearch(kw.id, kw.use_in_lead_search)}
+                          title={kw.use_in_lead_search ? 'In Lead Discovery — click to remove' : 'Enable for Lead Discovery search'}
+                          className={cn('flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded border transition-colors shrink-0',
+                            kw.use_in_lead_search
+                              ? 'bg-teal-500/15 text-teal-400 border-teal-500/30'
+                              : 'bg-slate-700/20 text-slate-600 border-slate-700/40 hover:text-teal-400 hover:border-teal-500/30'
+                          )}
+                        >
+                          <Radar className="w-2.5 h-2.5" />
+                          {kw.use_in_lead_search ? 'Lead On' : 'Lead'}
+                        </button>
                         <span className={cn('text-[10px] px-1.5 py-0.5 rounded border', TYPE_BADGE[kw.keyword_type] ?? TYPE_BADGE['Custom'])}>
                           {kw.keyword_type ?? 'Custom'}
                         </span>
