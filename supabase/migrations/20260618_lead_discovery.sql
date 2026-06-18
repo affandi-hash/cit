@@ -11,15 +11,8 @@ create table if not exists lead_entities (
   created_at timestamptz default now()
 );
 
--- Configurable allegation keywords (e.g. "ponzi", "tipu", "scam")
-create table if not exists lead_keywords (
-  id uuid primary key default gen_random_uuid(),
-  keyword text not null,
-  category text,
-  is_active boolean default true,
-  sort_order int default 0,
-  created_at timestamptz default now()
-);
+-- Link keyword library to lead discovery via a flag on existing keywords table
+alter table keywords add column if not exists use_in_lead_search boolean default false;
 
 -- Each "Pull Leads" run
 create table if not exists lead_batches (
@@ -80,17 +73,8 @@ create index if not exists idx_leads_status on leads(status);
 create index if not exists idx_leads_batch_id on leads(batch_id);
 create index if not exists idx_leads_created_at on leads(created_at desc);
 
--- Seed some default entities and keywords (can be changed in admin)
+-- Seed default entities (can be changed in admin)
 insert into lead_entities (name, description, sort_order) values
   ('Coach Fadzil', 'Primary subject', 1),
   ('QM', 'QM investment scheme', 2)
-on conflict do nothing;
-
-insert into lead_keywords (keyword, category, sort_order) values
-  ('ponzi', 'fraud', 1),
-  ('scam', 'fraud', 2),
-  ('tipu', 'fraud', 3),
-  ('MLM', 'scheme', 4),
-  ('skim cepat kaya', 'scheme', 5),
-  ('penipuan', 'fraud', 6)
 on conflict do nothing;

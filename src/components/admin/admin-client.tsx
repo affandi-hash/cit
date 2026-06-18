@@ -26,7 +26,6 @@ interface AdminClientProps {
   keywordGroups: Record<string, unknown>[]
   keywords: Record<string, unknown>[]
   leadEntities: Record<string, unknown>[]
-  leadKeywords: Record<string, unknown>[]
 }
 
 export function AdminClient({
@@ -41,7 +40,6 @@ export function AdminClient({
   keywordGroups,
   keywords,
   leadEntities: initialLeadEntities,
-  leadKeywords: initialLeadKeywords,
 }: AdminClientProps) {
   const supabase = createClient()
   const router = useRouter()
@@ -54,10 +52,7 @@ export function AdminClient({
   const [users, setUsers] = useState(initialUsers)
 
   const [leadEntities, setLeadEntities] = useState(initialLeadEntities)
-  const [leadKeywords, setLeadKeywords] = useState(initialLeadKeywords)
   const [newLeadEntity, setNewLeadEntity] = useState('')
-  const [newLeadKeyword, setNewLeadKeyword] = useState('')
-  const [newLeadKeywordCategory, setNewLeadKeywordCategory] = useState('')
 
   const [newPlatform, setNewPlatform] = useState('')
   const [newTopic, setNewTopic] = useState('')
@@ -414,56 +409,24 @@ export function AdminClient({
               </div>
             </div>
 
-            {/* Keywords */}
-            <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-5">
-              <h3 className="text-white font-semibold text-sm mb-1">Allegation Keywords</h3>
-              <p className="text-slate-500 text-xs mb-4">Keywords used to build search queries.</p>
-              <div className="flex items-center gap-2 mb-2">
-                <Input
-                  placeholder="Keyword…"
-                  value={newLeadKeyword}
-                  onChange={e => setNewLeadKeyword(e.target.value)}
-                  className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 text-sm"
-                />
-                <Input
-                  placeholder="Category (optional)"
-                  value={newLeadKeywordCategory}
-                  onChange={e => setNewLeadKeywordCategory(e.target.value)}
-                  className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 text-sm"
-                />
-                <Button
-                  onClick={() => {
-                    if (newLeadKeyword) {
-                      addItem('lead_keywords', { keyword: newLeadKeyword, category: newLeadKeywordCategory || null, sort_order: leadKeywords.length + 1 }, setLeadKeywords)
-                      setNewLeadKeyword('')
-                      setNewLeadKeywordCategory('')
-                    }
-                  }}
-                  className="bg-teal-700 hover:bg-teal-600 shrink-0"
-                >
-                  <Plus className="w-4 h-4" />
-                </Button>
+            {/* Keywords — linked from Keyword Library */}
+            <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-5 flex flex-col gap-3">
+              <div className="flex items-center gap-2">
+                <Radar className="w-4 h-4 text-teal-400" />
+                <h3 className="text-white font-semibold text-sm">Allegation Keywords</h3>
               </div>
-              <div className="space-y-2 mt-4">
-                {leadKeywords.map(k => (
-                  <div key={k.id as string} className="flex items-center justify-between p-3 bg-slate-800 rounded-lg">
-                    <div>
-                      <span className={`text-sm ${k.is_active ? 'text-white' : 'text-slate-500 line-through'}`}>{k.keyword as string}</span>
-                      {k.category && <span className="ml-2 text-xs text-slate-500">{k.category as string}</span>}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Switch
-                        checked={k.is_active as boolean}
-                        onCheckedChange={() => toggleActive('lead_keywords', k.id as string, k.is_active as boolean, leadKeywords, setLeadKeywords)}
-                      />
-                      <button onClick={() => deleteItem('lead_keywords', k.id as string, setLeadKeywords)}
-                        className="text-slate-600 hover:text-red-400 p-1">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <p className="text-slate-400 text-sm leading-relaxed">
+                Keywords for lead search are managed in the <strong className="text-white">Keyword Library</strong> tab.
+              </p>
+              <p className="text-slate-500 text-xs leading-relaxed">
+                Open any keyword group, expand it, and click the <span className="inline-flex items-center gap-1 text-teal-400 mx-0.5"><Radar className="w-3 h-3" /></span> radar icon next to any keyword to enable it for Lead Discovery search. Enabled keywords appear highlighted in teal.
+              </p>
+              <button
+                onClick={() => router.push('/admin?tab=keywords')}
+                className="self-start text-xs text-teal-400 hover:text-teal-300 underline underline-offset-2"
+              >
+                Go to Keyword Library →
+              </button>
             </div>
           </div>
         </TabsContent>

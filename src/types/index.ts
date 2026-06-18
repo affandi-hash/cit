@@ -244,14 +244,6 @@ export interface LeadEntity {
   created_at: string
 }
 
-export interface LeadKeyword {
-  id: string
-  keyword: string
-  category: string | null
-  is_active: boolean
-  sort_order: number
-  created_at: string
-}
 
 export interface LeadBatch {
   id: string

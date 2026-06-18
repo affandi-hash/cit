@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Plus, Trash2, ChevronDown, ChevronRight, Download, Shield } from 'lucide-react'
+import { Plus, Trash2, ChevronDown, ChevronRight, Download, Shield, Radar } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
@@ -30,6 +30,7 @@ interface Keyword {
   reputation_impact: string
   is_active: boolean
   is_legal_flag: boolean
+  use_in_lead_search: boolean
 }
 
 interface Props {
@@ -125,6 +126,12 @@ export function KeywordLibrary({ initialGroups, initialKeywords }: Props) {
     setKeywords(prev => prev.map(k => k.id === id ? { ...k, is_active: !current } : k))
   }
 
+  async function toggleLeadSearch(id: string, current: boolean) {
+    const { error } = await supabase.from('keywords').update({ use_in_lead_search: !current }).eq('id', id)
+    if (error) { toast.error(error.message); return }
+    setKeywords(prev => prev.map(k => k.id === id ? { ...k, use_in_lead_search: !current } : k))
+  }
+
   async function deleteKeyword(id: string) {
     const { error } = await supabase.from('keywords').delete().eq('id', id)
     if (error) { toast.error(error.message); return }
@@ -146,13 +153,21 @@ export function KeywordLibrary({ initialGroups, initialKeywords }: Props) {
 
   const ungrouped = keywords.filter(k => !k.group_id)
   const totalActive = keywords.filter(k => k.is_active).length
+  const totalLeadSearch = keywords.filter(k => k.use_in_lead_search).length
   const isEntity = newKw.keyword_type === 'Entity'
 
   return (
     <div className="space-y-5">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <p className="text-slate-400 text-sm">{keywords.length} keywords · {totalActive} active · {groups.length} groups</p>
+        <p className="text-slate-400 text-sm">
+          {keywords.length} keywords · {totalActive} active · {groups.length} groups
+          {totalLeadSearch > 0 && (
+            <span className="ml-2 inline-flex items-center gap-1 text-teal-400">
+              <Radar className="w-3 h-3" /> {totalLeadSearch} in lead search
+            </span>
+          )}
+        </p>
         <Button size="sm" variant="outline" onClick={exportCSV} className="border-slate-700 text-slate-400 hover:text-white h-8 text-xs gap-1.5">
           <Download className="w-3.5 h-3.5" /> Export CSV
         </Button>
@@ -300,6 +315,13 @@ export function KeywordLibrary({ initialGroups, initialKeywords }: Props) {
                         )}
                         <span className="text-slate-500 text-xs tabular-nums w-8 text-right">{kw.severity_score}</span>
                         <span className="text-slate-600 text-xs w-14 text-right">{kw.reputation_impact}</span>
+                        <button
+                          onClick={() => toggleLeadSearch(kw.id, kw.use_in_lead_search)}
+                          title={kw.use_in_lead_search ? 'Used in Lead Discovery (click to remove)' : 'Add to Lead Discovery search'}
+                          className={cn('p-1 rounded transition-colors', kw.use_in_lead_search ? 'text-teal-400 bg-teal-500/15' : 'text-slate-600 hover:text-teal-400')}
+                        >
+                          <Radar className="w-3 h-3" />
+                        </button>
                         <button onClick={() => toggleKeyword(kw.id, kw.is_active)}
                           className={cn('text-xs px-2 py-0.5 rounded transition-colors', kw.is_active ? 'bg-green-500/15 text-green-400' : 'bg-slate-700/40 text-slate-600')}>
                           {kw.is_active ? 'Active' : 'Off'}

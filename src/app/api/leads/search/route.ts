@@ -53,14 +53,17 @@ export async function POST() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    // Load active entities and keywords
+    // Load active entities and keywords flagged for lead search
     const [{ data: entities }, { data: keywords }] = await Promise.all([
       supabase.from('lead_entities').select('*').eq('is_active', true).order('sort_order'),
-      supabase.from('lead_keywords').select('*').eq('is_active', true).order('sort_order'),
+      supabase.from('keywords').select('keyword').eq('is_active', true).eq('use_in_lead_search', true).order('keyword'),
     ])
 
-    if (!entities?.length || !keywords?.length) {
-      return NextResponse.json({ error: 'No entities or keywords configured. Please add them in Admin > Lead Discovery.' }, { status: 400 })
+    if (!entities?.length) {
+      return NextResponse.json({ error: 'No search entities configured. Please add them in Admin > Lead Discovery.' }, { status: 400 })
+    }
+    if (!keywords?.length) {
+      return NextResponse.json({ error: 'No keywords enabled for lead search. Open Keyword Library and toggle the radar icon on keywords you want to use.' }, { status: 400 })
     }
 
     // Build query combinations (entity × keyword), take up to 4 combos for 20 results
