@@ -32,11 +32,10 @@ const PRIORITY_CONFIG = {
 interface Props {
   initialLeads: Lead[]
   entities: LeadEntity[]
-  keywords: { keyword: string }[]
   batches: LeadBatch[]
 }
 
-export function LeadsClient({ initialLeads, entities, keywords }: Props) {
+export function LeadsClient({ initialLeads, entities }: Props) {
   const [leads, setLeads] = useState<Lead[]>(initialLeads)
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
   const [pulling, setPulling] = useState(false)

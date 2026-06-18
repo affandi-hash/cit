@@ -7,12 +7,10 @@ export default async function LeadsPage() {
   const [
     { data: leads },
     { data: entities },
-    { data: keywords },
     { data: batches },
   ] = await Promise.all([
     supabase.from('leads').select('*').order('created_at', { ascending: false }).limit(200),
     supabase.from('lead_entities').select('*').eq('is_active', true).order('sort_order'),
-    supabase.from('lead_keywords').select('*').eq('is_active', true).order('sort_order'),
     supabase.from('lead_batches').select('*').order('created_at', { ascending: false }).limit(10),
   ])
 
@@ -20,7 +18,6 @@ export default async function LeadsPage() {
     <LeadsClient
       initialLeads={leads ?? []}
       entities={entities ?? []}
-      keywords={keywords ?? []}
       batches={batches ?? []}
     />
   )
