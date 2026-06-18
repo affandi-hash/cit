@@ -29,8 +29,8 @@ async function tavilySearch(query: string, domains?: string[]): Promise<TavilyRe
   const body: Record<string, unknown> = {
     api_key: process.env.TAVILY_API_KEY,
     query,
-    search_depth: 'basic',
-    max_results: 5,
+    search_depth: 'advanced',
+    max_results: 10,
     include_answer: false,
   }
   if (domains?.length) body.include_domains = domains
@@ -83,9 +83,9 @@ function buildAllegationQueries(entityName: string, aliases: string[], keywords:
   )
   const contextKws = keywords.filter(k => !allegationKws.includes(k))
 
-  for (const name of searchNames.slice(0, 3)) {
+  for (const name of searchNames.slice(0, 4)) {
     // Query 1: entity + allegation keyword → social media
-    for (const kw of allegationKws.slice(0, 2)) {
+    for (const kw of allegationKws.slice(0, 3)) {
       combos.push({
         entity: entityName,
         keyword: kw,
@@ -104,8 +104,17 @@ function buildAllegationQueries(entityName: string, aliases: string[], keywords:
       })
     }
 
-    // Query 3: entity + context keyword + scam/fraud anchors → no domain restriction
-    for (const kw of contextKws.slice(0, 1)) {
+    // Query 3: entity + allegation → no domain restriction (catches news, blogs)
+    if (allegationKws.length > 1) {
+      combos.push({
+        entity: entityName,
+        keyword: allegationKws[1],
+        query: `"${name}" ${allegationKws[1]} tuduhan OR laporan OR dakwa OR tipu`,
+      })
+    }
+
+    // Query 4: entity + context keyword + scam/fraud anchors
+    for (const kw of contextKws.slice(0, 2)) {
       combos.push({
         entity: entityName,
         keyword: kw,
@@ -120,7 +129,7 @@ function buildAllegationQueries(entityName: string, aliases: string[], keywords:
     if (seen.has(c.query)) return false
     seen.add(c.query)
     return true
-  }).slice(0, 8)
+  }).slice(0, 14)
 }
 
 export async function POST() {
@@ -146,7 +155,7 @@ export async function POST() {
 
     const combos = entities.flatMap(entity =>
       buildAllegationQueries(entity.name, entity.aliases ?? [], kwList)
-    ).slice(0, 8)
+    ).slice(0, 14)
 
     // Run searches in parallel
     const searchResults = await Promise.all(
@@ -224,7 +233,7 @@ entity searched: ${r.entity}`).join('\n\n')}`
     try {
       const msg = await anthropic.messages.create({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 4000,
+        max_tokens: 8000,
         messages: [{ role: 'user', content: filterPrompt }],
       })
       const text = msg.content[0].type === 'text' ? msg.content[0].text : ''
